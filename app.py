@@ -53,21 +53,17 @@ class UniversalEngine:
         target = datetime.date(y, m, d)
         diff = (target - base).days
         
-        # 1. 년주
         y_stem = (6 + (y - 1900)) % 10
         y_branch = (0 + (y - 1900)) % 12
         
-        # 2. 월주
         m_start = {0: 2, 1: 4, 2: 6, 3: 8, 4: 0, 5: 2, 6: 4, 7: 6, 8: 8, 9: 0}[y_stem]
         m_stem = (m_start + (m - 2)) % 10
         m_branch = (m + 1) % 12
         if m < 2: m_stem = (m_stem + 10) % 10
         
-        # 3. 일주
         d_stem = (0 + diff) % 10
         d_branch = (10 + diff) % 12
         
-        # 4. 시주
         h_branch = (h + 1) // 2 % 12
         t_start_map = {0: 0, 1: 2, 2: 4, 3: 6, 4: 8, 5: 0, 6: 2, 7: 4, 8: 6, 9: 8}
         t_start = t_start_map[d_stem]
@@ -179,8 +175,6 @@ class UniversalEngine:
         m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
 
         # 십신 용어 사전
-        dict_html = "<div style='font-size:12px; color:#666; background:#f9f9f9; padding:8px; border-radius:5px; margin-top:5px;'>"
-        dict_html += "<b>📖 십신 용어:</b> "
         seen = set()
         terms = []
         for d_item in saju_data:
@@ -190,104 +184,144 @@ class UniversalEngine:
                 if clean_k in self.db.shipsin_desc and clean_k not in seen:
                     terms.append(f"{clean_k}")
                     seen.add(clean_k)
-        dict_html += ", ".join(terms) + "</div>"
-
-        # --- HTML 리포트 (모바일 최적화) ---
-        html = f"""
-        <style>
-            .container {{ display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }}
-            .panel {{ width: 100%; border: 1px solid #ddd; border-radius: 12px; background: white; padding-bottom:10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }}
-            .hd {{ padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }}
-            
-            .s-grid {{ display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed #ccc; }}
-            .s-col {{ display: flex; flex-direction: column; align-items: center; }}
-            .char {{ width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px #ccc; }}
-            
-            .dw-box {{ display: flex; overflow-x: auto; padding: 10px; gap: 8px; background:#fafafa; -webkit-overflow-scrolling: touch; }}
-            .dw-cd {{ min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }}
-            
-            .card {{ margin: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #fff; }}
-            .tag {{ font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }}
-            
-            .z-title {{ font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }}
-            .chart-box {{ text-align: center; margin: 15px 0; }}
-            .chart-img {{ width: 280px; max-width: 80%; }}
-        </style>
         
-        <div class="container">
-            <div class="panel">
-                <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
-                
-                <div class="s-grid">
-                    <div class="s-col"><span style="font-size:12px;">시주</span><div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div><div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div><span style="font-size:11px;">{saju_data[0]['s_s']}</span></div>
-                    <div class="s-col"><span style="font-size:12px;">일주</span><div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div><div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div><span style="font-size:11px; color:blue;">{saju_data[1]['s_s']}</span></div>
-                    <div class="s-col"><span style="font-size:12px;">월주</span><div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div><div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div><span style="font-size:11px;">{saju_data[2]['s_s']}</span></div>
-                    <div class="s-col"><span style="font-size:12px;">년주</span><div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div><div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div><span style="font-size:11px;">{saju_data[3]['s_s']}</span></div>
-                </div>
-                
-                <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#eee;">🌊 대운 흐름</div>
-                <div class="dw-box">
-                    {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
-                </div>
-                
-                <div class="card" style="border-left: 5px solid #333;">
-                    <div style="font-weight:bold; font-size:15px; margin-bottom:5px;">📜 AI 도사의 감명</div>
-                    <div style="font-size:14px; line-height:1.6;">
-                        {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
-                        주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
-                    </div>
-                    {dict_html}
-                </div>
-                
-                <div class="card" style="border-left: 5px solid #009688;">
-                    <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>이달의 운세</div>
-                    <div style="font-size:14px; margin-top:8px;">{m_msg}</div>
-                </div>
-                
-                <div class="card" style="border-left: 5px solid #ff9800;">
-                    <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 운세 ({d_score}점)</div>
-                    <div style="font-size:14px; margin-top:8px;">{d_msg}</div>
-                </div>
-            </div>
-            
-            <div class="panel">
-                <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
-                <div class="z-title">{z_kor} ({z_eng})</div>
-                <div style="text-align:center; color:#666; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
-                
-                <div class="chart-box">
-                    <img src="data:image/png;base64,{chart_img}" class="chart-img">
-                    <div style="font-size:12px; color:#888; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
-                </div>
-                
-                <div class="card" style="background:#f4efff; border:none; margin:15px;">
-                    <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
-                    <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px;">
-                        <li><b>본질:</b> {z_desc}</li>
-                        <li><b>에너지:</b> 창의적이고 독립적인 성향이 강합니다.</li>
-                        <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
-                    </ul>
-                </div>
-            </div>
+        terms_str = ", ".join(terms)
+
+        # 스타일 정의
+        style = """
+<style>
+    .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
+    .panel { width: 100%; border: 1px solid #ddd; border-radius: 12px; background: white; padding-bottom:10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
+    .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed #ccc; }
+    .s-col { display: flex; flex-direction: column; align-items: center; }
+    .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px #ccc; }
+    .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background:#fafafa; -webkit-overflow-scrolling: touch; }
+    .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
+    .card { margin: 10px; padding: 15px; border: 1px solid #eee; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #fff; }
+    .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
+    .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
+    .chart-box { text-align: center; margin: 15px 0; }
+    .chart-img { width: 280px; max-width: 80%; }
+</style>
+"""
+        # 사주 패널 HTML
+        saju_html = f"""
+<div class="panel">
+    <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
+    <div class="s-grid">
+        <div class="s-col"><span style="font-size:12px;">시주</span><div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div><div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div><span style="font-size:11px;">{saju_data[0]['s_s']}</span></div>
+        <div class="s-col"><span style="font-size:12px;">일주</span><div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div><div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div><span style="font-size:11px; color:blue;">{saju_data[1]['s_s']}</span></div>
+        <div class="s-col"><span style="font-size:12px;">월주</span><div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div><div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div><span style="font-size:11px;">{saju_data[2]['s_s']}</span></div>
+        <div class="s-col"><span style="font-size:12px;">년주</span><div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div><div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div><span style="font-size:11px;">{saju_data[3]['s_s']}</span></div>
+    </div>
+    <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#eee;">🌊 대운 흐름</div>
+    <div class="dw-box">
+        {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
+    </div>
+    <div class="card" style="border-left: 5px solid #333;">
+        <div style="font-weight:bold; font-size:15px; margin-bottom:5px;">📜 AI 도사의 감명</div>
+        <div style="font-size:14px; line-height:1.6;">
+            {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
+            주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
         </div>
-        """
-        return html
+        <div style="font-size:12px; color:#666; background:#f9f9f9; padding:8px; border-radius:5px; margin-top:5px;">
+            <b>📖 십신 용어:</b> {terms_str}
+        </div>
+    </div>
+    <div class="card" style="border-left: 5px solid #009688;">
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>이달의 운세</div>
+        <div style="font-size:14px; margin-top:8px;">{m_msg}</div>
+    </div>
+    <div class="card" style="border-left: 5px solid #ff9800;">
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 운세 ({d_score}점)</div>
+        <div style="font-size:14px; margin-top:8px;">{d_msg}</div>
+    </div>
+</div>
+"""
+        # 별자리 패널 HTML
+        zodiac_html = f"""
+<div class="panel">
+    <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
+    <div class="z-title">{z_kor} ({z_eng})</div>
+    <div style="text-align:center; color:#666; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
+    <div class="chart-box">
+        <img src="data:image/png;base64,{chart_img}" class="chart-img">
+        <div style="font-size:12px; color:#888; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
+    </div>
+    <div class="card" style="background:#f4efff; border:none; margin:15px;">
+        <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
+        <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px;">
+            <li><b>본질:</b> {z_desc}</li>
+            <li><b>에너지:</b> 창의적이고 독립적인 성향이 강합니다.</li>
+            <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
+        </ul>
+    </div>
+</div>
+"""
+        # 최종 결합
+        final_html = f"""
+{style}
+<div class="container">
+    {saju_html}
+    {zodiac_html}
+</div>
+"""
+        return final_html
 
 # ==========================================
 # 3. Streamlit 앱 실행부
 # ==========================================
 def main():
-    st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered")
+    # [설정] 페이지 설정 및 사이드바 초기 상태를 'collapsed'로 하여 화살표 유도
+    st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
+    
+    # [CSS 주입] 화살표(사이드바 토글) 강조 스타일
+    st.markdown("""
+        <style>
+        /* 사이드바 닫혔을 때의 토글 버튼(화살표) 타겟팅 */
+        [data-testid="stSidebarCollapsedControl"] {
+            color: #ff4444 !important;
+            border: 2px solid #ff4444 !important;
+            background-color: #fff5f5 !important;
+            animation: pulse 2s infinite;
+        }
+
+        /* 텍스트 라벨 추가 (가상 요소 사용) */
+        [data-testid="stSidebarCollapsedControl"]::after {
+            content: "👈 여기를 눌러 정보 입력";
+            position: absolute;
+            top: 2px;
+            left: 50px; /* 버튼 오른쪽에 배치 */
+            width: 200px;
+            color: white;
+            background: #ff4444;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* 깜빡이는 애니메이션 효과 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+        }
+        </style>
+    """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.markdown("동양의 **사주**와 서양의 **별자리**를 통합 분석합니다.")
+    st.markdown("왼쪽 상단의 ** >> (👈) 화살표 **를 눌러 정보를 입력해주세요.")
+    st.info("사주와 별자리를 한번에 분석해 드립니다.")
     
     with st.sidebar:
         st.header("정보 입력")
         
-        # [수정 1] 이름 기본값 빈 칸 ("")
         name = st.text_input("이름", value="", placeholder="이름을 입력하세요 (예: 홍길동)")
-        
         gender = st.radio("성별", ["남자", "여자"])
         
         c1, c2 = st.columns(2)
@@ -296,31 +330,31 @@ def main():
         with c2:
             is_leap = st.checkbox("윤달 (음력)", value=False)
             
-        # [수정 2 & 3] 생년월일 빈 칸(None) & 범위 확대 (1900~2030)
-        b_date = st.date_input(
-            "생년월일", 
-            value=None, 
-            min_value=datetime.date(1900, 1, 1),
-            max_value=datetime.date(2030, 12, 31),
-            help="달력 아이콘을 눌러 생년월일을 선택하세요."
-        )
-        
+        birth_txt = st.text_input("생년월일 (8자리)", value="", placeholder="예: 19800101", help="숫자 8자리로 입력해주세요.")
         b_time = st.time_input("태어난 시간", value=datetime.time(12, 0))
         
         btn_run = st.button("운세 분석 시작", type="primary")
 
     if btn_run:
-        # 입력값 검증 (이름, 생일 필수)
         if not name:
             st.error("이름을 입력해주세요.")
             return
-        if b_date is None:
-            st.error("생년월일을 선택해주세요.")
+            
+        if not birth_txt or len(birth_txt) != 8 or not birth_txt.isdigit():
+            st.error("생년월일을 8자리 숫자로 정확히 입력해주세요. (예: 19800101)")
             return
+            
+        try:
+            y = int(birth_txt[:4])
+            m = int(birth_txt[4:6])
+            d = int(birth_txt[6:8])
+            datetime.date(y, m, d)
+        except ValueError:
+             st.error("존재하지 않는 날짜입니다. 생년월일을 확인해주세요.")
+             return
 
         engine = UniversalEngine()
         
-        y, m, d = b_date.year, b_date.month, b_date.day
         h = b_time.hour
         solar_str = f"{y}-{m}-{d}"
         
@@ -334,7 +368,6 @@ def main():
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
             
-            # --- 라이선스 고지 및 면책 조항 (광고 위) ---
             st.markdown("---")
             st.caption("""
             **[오픈소스 라이선스 고지]**
@@ -348,7 +381,6 @@ def main():
             개인정보는 서버에 저장되지 않습니다.
             """)
 
-            # --- [광고] 네이티브 앱 광고 (인라인 삽입) ---
             ad_code = """
             <div style="
                 width: 100%; height: 100px; 
