@@ -169,10 +169,23 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
 
+        # [사주] 운세 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
-        d_score = random.randint(70, 99)
-        d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
-        m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
+        s_d_score = random.randint(70, 99)
+        s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
+        s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
+
+        # [별자리] 운세 생성 (추가됨)
+        # 별자리 운세는 사주와 다르게 조금 더 감성적인 멘트로 설정
+        z_d_score = random.randint(60, 100)
+        z_d_msg = random.choice([
+            "직관력이 높아지는 날입니다. 느낌을 믿으세요.",
+            "주변 사람과의 대화에서 행운을 찾을 수 있어요.",
+            "창의적인 아이디어가 떠오릅니다. 메모하세요.",
+            "잠시 휴식을 취하며 내면을 돌아보세요."
+        ])
+        z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
+        z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
 
         # 십신 용어 사전
         seen = set()
@@ -230,16 +243,16 @@ class UniversalEngine:
         </div>
     </div>
     <div class="card" style="border-left: 5px solid #009688;">
-        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>이달의 운세</div>
-        <div style="font-size:14px; margin-top:8px;">{m_msg}</div>
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>사주 월간 운세</div>
+        <div style="font-size:14px; margin-top:8px;">{s_m_msg}</div>
     </div>
     <div class="card" style="border-left: 5px solid #ff9800;">
-        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 운세 ({d_score}점)</div>
-        <div style="font-size:14px; margin-top:8px;">{d_msg}</div>
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>사주 오늘의 운세 ({s_d_score}점)</div>
+        <div style="font-size:14px; margin-top:8px;">{s_d_msg}</div>
     </div>
 </div>
 """
-        # 별자리 패널 HTML
+        # 별자리 패널 HTML (월간/일간 운세 추가됨)
         zodiac_html = f"""
 <div class="panel">
     <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
@@ -257,6 +270,14 @@ class UniversalEngine:
             <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
         </ul>
     </div>
+    <div class="card" style="border-left: 5px solid #9c27b0;">
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#9c27b0;">Monthly</span>별자리 이달의 운세</div>
+        <div style="font-size:14px; margin-top:8px;">{z_m_msg}</div>
+    </div>
+    <div class="card" style="border-left: 5px solid #e91e63;">
+        <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Daily</span>별자리 오늘의 운세 ({z_d_score}점)</div>
+        <div style="font-size:14px; margin-top:8px;">{z_d_msg}</div>
+    </div>
 </div>
 """
         # 최종 결합
@@ -273,39 +294,26 @@ class UniversalEngine:
 # 3. Streamlit 앱 실행부
 # ==========================================
 def main():
-    # [설정] 페이지 설정 및 사이드바 초기 상태를 'collapsed'로 하여 화살표 유도
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # [CSS 주입] 화살표(사이드바 토글) 강조 스타일
+    # [CSS] 화살표 강조
     st.markdown("""
         <style>
-        /* 사이드바 닫혔을 때의 토글 버튼(화살표) 타겟팅 */
         [data-testid="stSidebarCollapsedControl"] {
             color: #ff4444 !important;
             border: 2px solid #ff4444 !important;
             background-color: #fff5f5 !important;
             animation: pulse 2s infinite;
         }
-
-        /* 텍스트 라벨 추가 (가상 요소 사용) */
         [data-testid="stSidebarCollapsedControl"]::after {
             content: "👈 여기를 눌러 정보 입력";
             position: absolute;
-            top: 2px;
-            left: 50px; /* 버튼 오른쪽에 배치 */
-            width: 200px;
-            color: white;
-            background: #ff4444;
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 14px;
+            top: 2px; left: 50px; width: 200px;
+            color: white; background: #ff4444; font-weight: bold;
+            padding: 5px 10px; border-radius: 5px; font-size: 14px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-            white-space: nowrap;
-            pointer-events: none;
+            white-space: nowrap; pointer-events: none;
         }
-
-        /* 깜빡이는 애니메이션 효과 */
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
@@ -315,12 +323,11 @@ def main():
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.markdown("왼쪽 상단의 ** >> (👈) 화살표 **를 눌러 정보를 입력해주세요.")
+    st.markdown("왼쪽 상단의 **붉은 화살표(👈)**를 눌러 정보를 입력해주세요.")
     st.info("사주와 별자리를 한번에 분석해 드립니다.")
     
     with st.sidebar:
         st.header("정보 입력")
-        
         name = st.text_input("이름", value="", placeholder="이름을 입력하세요 (예: 홍길동)")
         gender = st.radio("성별", ["남자", "여자"])
         
@@ -339,11 +346,9 @@ def main():
         if not name:
             st.error("이름을 입력해주세요.")
             return
-            
         if not birth_txt or len(birth_txt) != 8 or not birth_txt.isdigit():
             st.error("생년월일을 8자리 숫자로 정확히 입력해주세요. (예: 19800101)")
             return
-            
         try:
             y = int(birth_txt[:4])
             m = int(birth_txt[4:6])
@@ -354,7 +359,6 @@ def main():
              return
 
         engine = UniversalEngine()
-        
         h = b_time.hour
         solar_str = f"{y}-{m}-{d}"
         
