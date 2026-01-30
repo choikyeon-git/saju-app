@@ -169,14 +169,11 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
 
-        # [사주] 운세 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
         s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
 
-        # [별자리] 운세 생성 (추가됨)
-        # 별자리 운세는 사주와 다르게 조금 더 감성적인 멘트로 설정
         z_d_score = random.randint(60, 100)
         z_d_msg = random.choice([
             "직관력이 높아지는 날입니다. 느낌을 믿으세요.",
@@ -187,7 +184,6 @@ class UniversalEngine:
         z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
         z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
 
-        # 십신 용어 사전
         seen = set()
         terms = []
         for d_item in saju_data:
@@ -200,7 +196,6 @@ class UniversalEngine:
         
         terms_str = ", ".join(terms)
 
-        # 스타일 정의
         style = """
 <style>
     .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
@@ -218,7 +213,6 @@ class UniversalEngine:
     .chart-img { width: 280px; max-width: 80%; }
 </style>
 """
-        # 사주 패널 HTML
         saju_html = f"""
 <div class="panel">
     <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
@@ -252,7 +246,6 @@ class UniversalEngine:
     </div>
 </div>
 """
-        # 별자리 패널 HTML (월간/일간 운세 추가됨)
         zodiac_html = f"""
 <div class="panel">
     <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
@@ -280,39 +273,26 @@ class UniversalEngine:
     </div>
 </div>
 """
-        # 최종 결합
-        final_html = f"""
-{style}
-<div class="container">
-    {saju_html}
-    {zodiac_html}
-</div>
-"""
+        final_html = f"{style}<div class='container'>{saju_html}{zodiac_html}</div>"
         return final_html
 
 # ==========================================
 # 3. Streamlit 앱 실행부
 # ==========================================
 def main():
+    # 1. 사이트 메뉴 및 하단 footer 숨기기 (GitHub 아이콘 등 제거)
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # [CSS] 화살표 강조
     st.markdown("""
         <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
         [data-testid="stSidebarCollapsedControl"] {
             color: #ff4444 !important;
             border: 2px solid #ff4444 !important;
             background-color: #fff5f5 !important;
             animation: pulse 2s infinite;
-        }
-        [data-testid="stSidebarCollapsedControl"]::after {
-            content: "👈 여기를 눌러 정보 입력";
-            position: absolute;
-            top: 2px; left: 50px; width: 200px;
-            color: white; background: #ff4444; font-weight: bold;
-            padding: 5px 10px; border-radius: 5px; font-size: 14px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-            white-space: nowrap; pointer-events: none;
         }
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
@@ -323,42 +303,25 @@ def main():
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.markdown("왼쪽 상단의 **붉은 화살표(👈)**를 눌러 정보를 입력해주세요.")
-    st.info("사주와 별자리를 한번에 분석해 드립니다.")
+    st.markdown("왼쪽 상단의 **>> 화살표(👈)**를 눌러 정보를 입력해주세요.")
     
     with st.sidebar:
         st.header("정보 입력")
-        name = st.text_input("이름", value="", placeholder="이름을 입력하세요 (예: 홍길동)")
+        name = st.text_input("이름", value="", placeholder="이름을 입력하세요")
         gender = st.radio("성별", ["남자", "여자"])
-        
-        c1, c2 = st.columns(2)
-        with c1:
-            cal_type = st.radio("달력", ["양력", "음력"])
-        with c2:
-            is_leap = st.checkbox("윤달 (음력)", value=False)
-            
-        birth_txt = st.text_input("생년월일 (8자리)", value="", placeholder="예: 19800101", help="숫자 8자리로 입력해주세요.")
+        cal_type = st.radio("달력", ["양력", "음력"])
+        is_leap = st.checkbox("윤달 (음력)", value=False) if cal_type == "음력" else False
+        birth_txt = st.text_input("생년월일 (8자리)", placeholder="예: 19800101")
         b_time = st.time_input("태어난 시간", value=datetime.time(12, 0))
-        
         btn_run = st.button("운세 분석 시작", type="primary")
 
     if btn_run:
-        if not name:
-            st.error("이름을 입력해주세요.")
+        if not name or len(birth_txt) != 8:
+            st.error("이름과 생년월일 8자리를 입력해주세요.")
             return
-        if not birth_txt or len(birth_txt) != 8 or not birth_txt.isdigit():
-            st.error("생년월일을 8자리 숫자로 정확히 입력해주세요. (예: 19800101)")
-            return
-        try:
-            y = int(birth_txt[:4])
-            m = int(birth_txt[4:6])
-            d = int(birth_txt[6:8])
-            datetime.date(y, m, d)
-        except ValueError:
-             st.error("존재하지 않는 날짜입니다. 생년월일을 확인해주세요.")
-             return
 
         engine = UniversalEngine()
+        y, m, d = int(birth_txt[:4]), int(birth_txt[4:6]), int(birth_txt[6:8])
         h = b_time.hour
         solar_str = f"{y}-{m}-{d}"
         
@@ -373,28 +336,20 @@ def main():
             st.markdown(html_report, unsafe_allow_html=True)
             
             st.markdown("---")
-            st.caption("""
-            **[오픈소스 라이선스 고지]**
-            * **Streamlit**: Apache 2.0 License (상업적 이용 가능)
-            * **Matplotlib**: PSF License (상업적 이용 가능)
-            * **NumPy**: BSD License (상업적 이용 가능)
-            * **Korean_lunar_calendar**: MIT License (상업적 이용 가능)
-            
-            **[면책 조항]**
-            본 서비스는 엔터테인먼트 목적으로 제공되며, 결과에 대한 법적 책임을 지지 않습니다.
-            개인정보는 서버에 저장되지 않습니다.
-            """)
-
-            ad_code = """
-            <div style="
-                width: 100%; height: 100px; 
-                background: #f8f9fa; border: 1px solid #ddd; 
-                display: flex; align-items: center; justify-content: center;
-                margin-top: 20px; border-radius: 8px;">
-                <span style="color:#aaa; font-weight:bold; font-size:14px;">Google AdMob / Banner Ad Area</span>
+            # 2. 광고 영역 (예제 코드 적용)
+            # 나중에 실제 구글 광고 코드가 나오면 아래 'ad_content' 내부를 교체하시면 됩니다.
+            ad_content = """
+            <div style="background-color: #f1f3f4; border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #bdc1c6;">
+                <p style="color: #70757a; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
+                <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">
+                    성공적인 미래를 위한 오늘의 한걸음 🍀
+                </div>
+                <p style="color: #3c4043; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
             </div>
             """
-            components.html(ad_code, height=120)
+            components.html(ad_content, height=150)
+
+            st.caption("본 서비스는 엔터테인먼트용이며 법적 책임을 지지 않습니다.")
 
 if __name__ == "__main__":
     main()
