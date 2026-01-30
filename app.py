@@ -157,14 +157,14 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
         
-        # 메시지 생성
+        # 랜덤 메시지 생성
         s_d_score = random.randint(75, 99)
-        s_d_msg = random.choice(["귀인의 도움이 있는 날입니다.", "재물운이 상승하는 흐름입니다.", "작은 실수가 큰 배움이 됩니다.", "뜻밖의 기쁜 소식이 옵니다."])
-        s_m_msg = random.choice(["이번 달은 이동이나 변화가 길하게 작용합니다.", "안정을 취하며 내실을 다지는 한 달이 되세요.", "새로운 인연이나 협력자가 나타날 운입니다."])
+        s_d_msg = random.choice(["귀인의 도움이 있는 날입니다.", "재물운이 상승하는 흐름입니다.", "뜻밖의 기쁜 소식이 옵니다.", "안정적인 성장이 기대되는 날입니다."])
+        s_m_msg = random.choice(["이번 달은 새로운 변화를 시도하기에 적기입니다.", "주변 사람과의 협력이 행운을 불러옵니다.", "내실을 다지는 한 달이 되면 길합니다."])
         
         z_d_score = random.randint(70, 100)
-        z_d_msg = random.choice(["직관력이 날카로운 날입니다. 첫 느낌을 믿으세요.", "주변과의 소통에서 행운의 힌트를 얻습니다.", "창의적인 아이디어가 샘솟는 하루입니다."])
-        z_m_msg = f"이달의 별들이 당신의 앞날을 밝게 비추고 있습니다. 자신감을 가지세요."
+        z_d_msg = random.choice(["창의적인 아이디어가 샘솟는 하루입니다.", "직관력이 예리해지는 날입니다.", "작은 배려가 큰 보답으로 돌아옵니다."])
+        z_m_msg = f"이달의 별들이 당신을 향해 긍정적인 에너지를 보내고 있습니다."
 
         seen = set()
         terms = []
@@ -206,7 +206,7 @@ class UniversalEngine:
 
         saju_html = f"""
         <div class="panel">
-            <div class="hd" style="background:#333;">🔮 사주 분석 ({solar_date_str})</div>
+            <div class="hd" style="background:#333;">🔮 사주 분석 결과 ({solar_date_str})</div>
             <div class="s-grid">
                 <div class="s-col">
                     <span style="font-size:12px; opacity:0.8;">시주</span>
@@ -233,7 +233,7 @@ class UniversalEngine:
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
                 </div>
             </div>
-            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름 (10년 단위)</div>
+            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
             <div class="dw-box">
                 {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
             </div>
@@ -242,7 +242,7 @@ class UniversalEngine:
                 <div style="font-size:14px; margin-top:8px;">{s_m_msg}</div>
             </div>
             <div class="card" style="border-left: 5px solid #ff9800;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 사주 점수: {s_d_score}점</div>
+                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 사주 운세: {s_d_score}점</div>
                 <div style="font-size:14px; margin-top:8px;">{s_d_msg}</div>
             </div>
         </div>
@@ -250,7 +250,7 @@ class UniversalEngine:
 
         zodiac_html = f"""
         <div class="panel">
-            <div class="hd" style="background:#673ab7;">✨ 별자리 (Chart)</div>
+            <div class="hd" style="background:#673ab7;">✨ 별자리 운세</div>
             <div style="font-size: 22px; font-weight: bold; text-align: center; margin-top:10px; color:#673ab7;">{z_kor} ({z_eng})</div>
             <div style="text-align:center; opacity:0.7; font-size:14px;">"{z_desc}"</div>
             <div style="text-align:center; margin:15px 0;">
@@ -261,7 +261,7 @@ class UniversalEngine:
                 <div style="font-size:14px; margin-top:8px;">{z_m_msg}</div>
             </div>
             <div class="card" style="border-left: 5px solid #e91e63;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Today</span>오늘의 별자리 점수: {z_d_score}점</div>
+                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Today</span>오늘의 별자리 운세: {z_d_score}점</div>
                 <div style="font-size:14px; margin-top:8px;">{z_d_msg}</div>
             </div>
         </div>
@@ -274,12 +274,14 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
+    # [수정] 하단 배지 및 깃허브 아이콘 완전 제거용 CSS
     st.markdown("""
         <style>
             #MainMenu { visibility: hidden; }
             footer { visibility: hidden; }
             header { visibility: hidden; }
             [data-testid="stViewerBadge"] { display: none !important; }
+            .viewerBadge_container__1QSob { display: none !important; }
             html, body, [data-testid="stAppViewContainer"] { color: inherit; }
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important; color: white !important;
@@ -304,7 +306,7 @@ def main():
 
     if btn_run:
         if not name or len(birth_txt) != 8:
-            st.error("이름과 생년월일 8자리를 입력해주세요.")
+            st.error("이름과 생년월일 8자리를 정확히 입력해주세요.")
             return
         engine = UniversalEngine()
         y, m, d = int(birth_txt[:4]), int(birth_txt[4:6]), int(birth_txt[6:8])
@@ -317,9 +319,23 @@ def main():
             solar_str = f"{y}-{m}-{d} (음력)"
         
         with st.spinner("운명을 분석 중입니다..."):
+            # 1. 리포트 본문 출력
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
-            st.caption("본 결과는 엔터테인먼트용입니다.")
+            
+            st.markdown("---")
+            
+            # 2. [추가] 하단 광고 영역 복구
+            ad_content = """
+            <div style="background-color: rgba(128, 128, 128, 0.05); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.3); color: inherit;">
+                <p style="opacity: 0.6; font-size: 11px; margin: 0;">ADVERTISEMENT</p>
+                <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
+                <p style="font-size: 13px; opacity: 0.8;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
+            </div>
+            """
+            components.html(ad_content, height=150)
+            
+            st.caption("본 결과는 엔터테인먼트용이며 법적 책임을 지지 않습니다.")
 
 if __name__ == "__main__":
     main()
