@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from korean_lunar_calendar import KoreanLunarCalendar
 
 # ==========================================
-# 1. 통합 데이터 베이스 (콘텐츠 유지)
+# 1. 통합 데이터 베이스 (초기 안정 버전)
 # ==========================================
 class UniversalDB:
     def __init__(self):
@@ -33,7 +33,7 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (로직 유지)
+# 2. 통합 엔진 (초기 안정 버전)
 # ==========================================
 class UniversalEngine:
     def __init__(self):
@@ -175,21 +175,106 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
+        # CSS 스타일 분리
         style = """
         <style>
-            .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
-            .panel { width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; }
-            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
-            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
-            .s-col { display: flex; flex-direction: column; align-items: center; }
-            .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
-            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
-            .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
-            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; }
-            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
-            .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
-            .chart-box { text-align: center; margin: 15px 0; }
-            .chart-img { width: 280px; max-width: 80%; }
+            .container { 
+                display: flex; 
+                flex-direction: column; 
+                width: 100%; 
+                gap: 15px; 
+                font-family: sans-serif; 
+            }
+            .panel { 
+                width: 100%; 
+                border: 1px solid #ddd; 
+                border-radius: 12px; 
+                background: white; 
+                padding-bottom:10px; 
+                overflow: hidden; 
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+            }
+            .hd { 
+                padding: 12px; 
+                color: white; 
+                font-weight: bold; 
+                text-align: center; 
+                font-size: 16px; 
+            }
+            .s-grid { 
+                display: flex; 
+                justify-content: space-around; 
+                padding: 15px 5px; 
+                border-bottom:1px dashed #ccc; 
+            }
+            .s-col { 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+            }
+            .char { 
+                width: 50px; 
+                height: 50px; 
+                font-size: 26px; 
+                line-height: 50px; 
+                font-weight: bold; 
+                border-radius: 8px; 
+                margin: 2px; 
+                text-align: center; 
+                box-shadow: 1px 1px 3px #ccc; 
+            }
+            .dw-box { 
+                display: flex; 
+                overflow-x: auto; 
+                padding: 10px; 
+                gap: 8px; 
+                background:#fafafa; 
+                -webkit-overflow-scrolling: touch; 
+            }
+            .dw-cd { 
+                min-width: 50px; 
+                height: 65px; 
+                border-radius: 6px; 
+                display: flex; 
+                flex-direction: column; 
+                align-items: center; 
+                justify-content: center; 
+                color:white; 
+                font-size:12px; 
+                font-weight:bold; 
+                flex-shrink: 0; 
+            }
+            .card { 
+                margin: 10px; 
+                padding: 15px; 
+                border: 1px solid #eee; 
+                border-radius: 10px; 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+                background: #fff; 
+            }
+            .tag { 
+                font-size: 11px; 
+                color: white; 
+                padding: 3px 8px; 
+                border-radius: 12px; 
+                margin-right: 5px; 
+                vertical-align: middle; 
+            }
+            .z-title { 
+                font-size: 24px; 
+                font-weight: bold; 
+                color: #673ab7; 
+                text-align: center; 
+                margin-top:10px; 
+            }
+            .chart-box { 
+                text-align: center; 
+                margin: 15px 0; 
+            }
+            .chart-img { 
+                width: 280px; 
+                max-width: 80%; 
+            }
         </style>
         """
 
@@ -207,7 +292,7 @@ class UniversalEngine:
                     <span style="font-size:12px;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
-                    <span style="font-size:11px; color:#2196f3;">{saju_data[1]['s_s']}</span>
+                    <span style="font-size:11px; color:blue;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
                     <span style="font-size:12px;">월주</span>
@@ -222,7 +307,7 @@ class UniversalEngine:
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
                 </div>
             </div>
-            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
+            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#eee;">🌊 대운 흐름</div>
             <div class="dw-box">
                 {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
             </div>
@@ -232,7 +317,7 @@ class UniversalEngine:
                     {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
                     주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
                 </div>
-                <div style="font-size:12px; opacity:0.8; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
+                <div style="font-size:12px; color:#666; background:#f9f9f9; padding:8px; border-radius:5px; margin-top:5px;">
                     <b>📖 십신 용어:</b> {terms_str}
                 </div>
             </div>
@@ -251,10 +336,18 @@ class UniversalEngine:
         <div class="panel">
             <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
             <div class="z-title">{z_kor} ({z_eng})</div>
-            <div style="text-align:center; opacity:0.7; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
+            <div style="text-align:center; color:#666; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
             <div class="chart-box">
                 <img src="data:image/png;base64,{chart_img}" class="chart-img">
-                <div style="font-size:12px; opacity:0.6; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
+                <div style="font-size:12px; color:#888; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
+            </div>
+            <div class="card" style="background:#f4efff; border:none; margin:15px;">
+                <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
+                <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px;">
+                    <li><b>본질:</b> {z_desc}</li>
+                    <li><b>에너지:</b> 창의적이고 독립적인 성향이 강합니다.</li>
+                    <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
+                </ul>
             </div>
             <div class="card" style="border-left: 5px solid #9c27b0;">
                 <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#9c27b0;">Monthly</span>별자리 이달의 운세</div>
@@ -270,57 +363,20 @@ class UniversalEngine:
         return final_html
 
 # ==========================================
-# 3. Streamlit 앱 실행부 (플로팅 메뉴 강제 삭제 로직 추가)
+# 3. Streamlit 앱 실행부
 # ==========================================
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [핵심] 하단 플로팅 메뉴 완전 박멸 자바스크립트 + CSS
+    # [강조 CSS] 사이드바 버튼, 가이드, 투명 방패(Click Shield)
     st.markdown("""
-        <script>
-            // 끈질긴 하단 메뉴를 주기적으로 감시하여 삭제하는 함수
-            function killFloatingMenus() {
-                const targets = [
-                    '[data-testid="stAppDeployButton"]', // Manage app 버튼
-                    '[data-testid="stStatusWidget"]',    // 상태 위젯
-                    '[data-testid="stViewerBadge"]',     // Made with Streamlit 배지
-                    '.viewerBadge_container__1QSob',     // 배지 컨테이너
-                    'header[data-testid="stHeader"]',    // 상단 헤더 (선택사항)
-                    'footer'                             // 하단 푸터
-                ];
-                targets.forEach(selector => {
-                    const el = document.querySelector(selector);
-                    if (el) {
-                        el.style.display = 'none';
-                        el.style.visibility = 'hidden';
-                        el.remove(); // DOM에서 아예 제거
-                    }
-                });
-            }
-            // 0.2초마다 실행하여 다시 생겨나도 즉시 삭제
-            setInterval(killFloatingMenus, 200);
-        </script>
-        
         <style>
-            /* CSS로 1차 차단 */
-            [data-testid="stAppDeployButton"], 
-            [data-testid="stStatusWidget"],
-            [data-testid="stViewerBadge"],
-            header, footer {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                width: 0 !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
+            #MainMenu { visibility: hidden; }
+            footer { visibility: hidden; }
+            header { 
+                background: transparent !important;
+                height: 3rem !important;
             }
-            
-            /* 모바일 하단 여백 제거 */
-            .main .block-container {
-                padding-bottom: 20px !important;
-            }
-
-            /* 상단 버튼 스타일 (기존 유지) */
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important;
                 color: white !important;
@@ -355,11 +411,20 @@ def main():
                 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
             
-            /* 글자색 다크모드 자동 대응 */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: inherit;
+            /* [NEW] 하단 투명 방패 (클릭 차단) */
+            .click-shield {
+                position: fixed;
+                bottom: 0px;
+                left: 0px;
+                width: 100vw;
+                height: 50px;  /* 하단 링크 영역 높이 */
+                background-color: transparent; /* 투명 */
+                z-index: 99999999; /* 최상위 레이어 */
+                pointer-events: auto; /* 터치 이벤트 가로채기 */
             }
         </style>
+        
+        <div class="click-shield"></div>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
@@ -392,13 +457,11 @@ def main():
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
             st.markdown("---")
-            
-            # 광고 영역 (배경색 투명화로 다크모드 호환)
             ad_content = """
-            <div style="background-color: rgba(128, 128, 128, 0.1); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.3); color: inherit;">
-                <p style="opacity: 0.7; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
+            <div style="background-color: #f1f3f4; border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #bdc1c6;">
+                <p style="color: #70757a; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
-                <p style="opacity: 0.8; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
+                <p style="color: #3c4043; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
             </div>
             """
             components.html(ad_content, height=150)
