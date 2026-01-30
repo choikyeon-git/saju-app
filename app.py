@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from korean_lunar_calendar import KoreanLunarCalendar
 
 # ==========================================
-# 1. 통합 데이터 베이스 (초기 버전 유지)
+# 1. 통합 데이터 베이스 (콘텐츠 유지)
 # ==========================================
 class UniversalDB:
     def __init__(self):
@@ -33,7 +33,7 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (초기 버전 유지)
+# 2. 통합 엔진 (로직 유지)
 # ==========================================
 class UniversalEngine:
     def __init__(self):
@@ -156,14 +156,12 @@ class UniversalEngine:
         daewoon = self.get_daewoon(ganji["year"][0], ganji["month"][0], ganji["month"][1], gender)
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
-        
-        # 메시지 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
         s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
         z_d_score = random.randint(60, 100)
-        z_d_msg = random.choice(["직관력이 높아지는 날입니다.", "대화에서 행운을 찾으세요.", "메모를 습관화 하세요.", "내면을 돌아보세요."])
+        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다. 메모하세요.", "잠시 휴식을 취하며 내면을 돌아보세요."])
         z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
         z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
         seen = set()
@@ -177,61 +175,19 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
-        # 🌟 [수정 포인트] 다크 모드 대응형 CSS (글자색 자동 반전)
         style = """
         <style>
-            .container { 
-                display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; 
-            }
-            .panel { 
-                width: 100%; 
-                border: 1px solid rgba(128, 128, 128, 0.3); /* 반투명 테두리 */
-                border-radius: 12px; 
-                background: transparent; /* 배경 투명 (다크모드 대응) */
-                padding-bottom:10px; 
-                overflow: hidden; 
-                color: inherit; /* 글자색 상속 (다크모드 대응) */
-            }
-            .hd { 
-                padding: 12px; 
-                color: white; 
-                font-weight: bold; 
-                text-align: center; 
-                font-size: 16px; 
-            }
-            .s-grid { 
-                display: flex; 
-                justify-content: space-around; 
-                padding: 15px 5px; 
-                border-bottom:1px dashed rgba(128, 128, 128, 0.3); 
-            }
+            .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
+            .panel { width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; }
+            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
+            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
             .s-col { display: flex; flex-direction: column; align-items: center; }
-            .char { 
-                width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; 
-                border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
-            }
-            .dw-box { 
-                display: flex; overflow-x: auto; padding: 10px; gap: 8px; 
-                background: rgba(128, 128, 128, 0.05); /* 연한 회색 배경 */
-            }
-            .dw-cd { 
-                min-width: 50px; height: 65px; border-radius: 6px; 
-                display: flex; flex-direction: column; align-items: center; justify-content: center; 
-                color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
-            }
-            .card { 
-                margin: 10px; padding: 15px; 
-                border: 1px solid rgba(128, 128, 128, 0.2); 
-                border-radius: 10px; 
-                background: rgba(128, 128, 128, 0.03); /* 아주 옅은 배경 */
-                color: inherit;
-            }
-            .tag { 
-                font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; 
-            }
-            .z-title { 
-                font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; 
-            }
+            .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
+            .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
+            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; }
+            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
+            .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
             .chart-box { text-align: center; margin: 15px 0; }
             .chart-img { width: 280px; max-width: 80%; }
         </style>
@@ -314,30 +270,57 @@ class UniversalEngine:
         return final_html
 
 # ==========================================
-# 3. Streamlit 앱 실행부
+# 3. Streamlit 앱 실행부 (플로팅 메뉴 강제 삭제 로직 추가)
 # ==========================================
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [개선] 하단 배지 숨김 및 다크모드 글자색 대응
+    # 🌟 [핵심] 하단 플로팅 메뉴 완전 박멸 자바스크립트 + CSS
     st.markdown("""
-        <style>
-            #MainMenu { visibility: hidden; }
-            footer { visibility: hidden; }
-            header { 
-                background: transparent !important;
-                height: 3rem !important;
+        <script>
+            // 끈질긴 하단 메뉴를 주기적으로 감시하여 삭제하는 함수
+            function killFloatingMenus() {
+                const targets = [
+                    '[data-testid="stAppDeployButton"]', // Manage app 버튼
+                    '[data-testid="stStatusWidget"]',    // 상태 위젯
+                    '[data-testid="stViewerBadge"]',     // Made with Streamlit 배지
+                    '.viewerBadge_container__1QSob',     // 배지 컨테이너
+                    'header[data-testid="stHeader"]',    // 상단 헤더 (선택사항)
+                    'footer'                             // 하단 푸터
+                ];
+                targets.forEach(selector => {
+                    const el = document.querySelector(selector);
+                    if (el) {
+                        el.style.display = 'none';
+                        el.style.visibility = 'hidden';
+                        el.remove(); // DOM에서 아예 제거
+                    }
+                });
             }
-            /* 하단 배지 및 배포 버튼 숨기기 */
-            [data-testid="stViewerBadge"] { display: none !important; }
-            .viewerBadge_container__1QSob { display: none !important; }
-            [data-testid="stAppDeployButton"] { display: none !important; }
+            // 0.2초마다 실행하여 다시 생겨나도 즉시 삭제
+            setInterval(killFloatingMenus, 200);
+        </script>
+        
+        <style>
+            /* CSS로 1차 차단 */
+            [data-testid="stAppDeployButton"], 
+            [data-testid="stStatusWidget"],
+            [data-testid="stViewerBadge"],
+            header, footer {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                width: 0 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
             
-            /* 글자색 상속 (다크모드/라이트모드 자동 전환) */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: inherit;
+            /* 모바일 하단 여백 제거 */
+            .main .block-container {
+                padding-bottom: 20px !important;
             }
 
+            /* 상단 버튼 스타일 (기존 유지) */
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important;
                 color: white !important;
@@ -370,6 +353,11 @@ def main():
                 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
                 70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
                 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+            }
+            
+            /* 글자색 다크모드 자동 대응 */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
             }
         </style>
     """, unsafe_allow_html=True)
