@@ -42,7 +42,7 @@ class UniversalEngine:
         self.ji_hanja = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
         self.oh_map = {
             "목": {"color": "#00C73C", "text": "white"}, "화": {"color": "#FF4444", "text": "white"},
-            "토": {"color": "#E6B800", "text": "black"}, "금": {"color": "#DDDDDD", "text": "black"},
+            "토": {"color": "#E6B800", "text": "black"}, "금": {"color": "#CCCCCC", "text": "black"},
             "수": {"color": "#333333", "text": "white"}
         }
         self.gan_oh = ["목", "목", "화", "화", "토", "토", "금", "금", "수", "수"]
@@ -107,6 +107,7 @@ class UniversalEngine:
         return z_eng, z_kor, z_desc
 
     def generate_chart_image(self, target_eng, m, d):
+        # 차트 이미지 생성 시 배경색과 글자색을 다크모드에서도 잘 보이도록 투명 처리 및 밝은 계열 사용
         day_of_year = datetime.date(2000, m, d).timetuple().tm_yday
         vern_equinox = datetime.date(2000, 3, 21).timetuple().tm_yday
         diff_days = day_of_year - vern_equinox
@@ -125,9 +126,9 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            color = '#d1c4e9' if i == target_idx else '#f5f5f5'
-            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.8, edgecolor='white')
-            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#333', fontweight='bold')
+            color = '#673ab7' if i == target_idx else '#88888833'
+            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.5, edgecolor='gray')
+            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='gray', fontweight='bold')
         sun_angle = np.deg2rad(sun_lon)
         ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
@@ -156,14 +157,15 @@ class UniversalEngine:
         daewoon = self.get_daewoon(ganji["year"][0], ganji["month"][0], ganji["month"][1], gender)
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
-        random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
+        
+        # 랜덤 메시지 생략(기존 동일)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
         s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
         z_d_score = random.randint(60, 100)
-        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다. 메모하세요.", "잠시 휴식을 취하며 내면을 돌아보세요."])
-        z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
-        z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
+        z_d_msg = random.choice(["직관력이 높아지는 날입니다.", "대화에서 행운을 찾으세요.", "메모를 습관화 하세요.", "내면을 돌아보세요."])
+        z_m_msg = f"이번 달 당신을 비추는 별의 에너지가 강합니다."
+
         seen = set()
         terms = []
         for d_item in saju_data:
@@ -175,106 +177,39 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
-        # CSS 스타일 분리 (라인 수 확보 및 가독성)
+        # 다크/라이트 모드 대응형 CSS
         style = """
         <style>
-            .container { 
-                display: flex; 
-                flex-direction: column; 
-                width: 100%; 
-                gap: 15px; 
-                font-family: sans-serif; 
-            }
+            .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
             .panel { 
                 width: 100%; 
-                border: 1px solid #ddd; 
+                border: 1px solid rgba(128, 128, 128, 0.3); 
                 border-radius: 12px; 
-                background: white; 
+                background: transparent; 
                 padding-bottom:10px; 
                 overflow: hidden; 
-                box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+                color: inherit; 
             }
-            .hd { 
-                padding: 12px; 
-                color: white; 
-                font-weight: bold; 
-                text-align: center; 
-                font-size: 16px; 
-            }
-            .s-grid { 
-                display: flex; 
-                justify-content: space-around; 
-                padding: 15px 5px; 
-                border-bottom:1px dashed #ccc; 
-            }
-            .s-col { 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-            }
+            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
+            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
+            .s-col { display: flex; flex-direction: column; align-items: center; }
             .char { 
-                width: 50px; 
-                height: 50px; 
-                font-size: 26px; 
-                line-height: 50px; 
-                font-weight: bold; 
-                border-radius: 8px; 
-                margin: 2px; 
-                text-align: center; 
-                box-shadow: 1px 1px 3px #ccc; 
+                width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; 
+                border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
             }
-            .dw-box { 
-                display: flex; 
-                overflow-x: auto; 
-                padding: 10px; 
-                gap: 8px; 
-                background:#fafafa; 
-                -webkit-overflow-scrolling: touch; 
-            }
+            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
             .dw-cd { 
-                min-width: 50px; 
-                height: 65px; 
-                border-radius: 6px; 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-                justify-content: center; 
-                color:white; 
-                font-size:12px; 
-                font-weight:bold; 
-                flex-shrink: 0; 
+                min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; 
+                align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
             }
             .card { 
-                margin: 10px; 
-                padding: 15px; 
-                border: 1px solid #eee; 
-                border-radius: 10px; 
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-                background: #fff; 
+                margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); 
+                border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit;
             }
-            .tag { 
-                font-size: 11px; 
-                color: white; 
-                padding: 3px 8px; 
-                border-radius: 12px; 
-                margin-right: 5px; 
-                vertical-align: middle; 
-            }
-            .z-title { 
-                font-size: 24px; 
-                font-weight: bold; 
-                color: #673ab7; 
-                text-align: center; 
-                margin-top:10px; 
-            }
-            .chart-box { 
-                text-align: center; 
-                margin: 15px 0; 
-            }
-            .chart-img { 
-                width: 280px; 
-                max-width: 80%; 
-            }
+            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
+            .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
+            .chart-box { text-align: center; margin: 15px 0; }
+            .chart-img { width: 280px; max-width: 80%; filter: drop-shadow(0px 0px 5px rgba(128,128,128,0.2)); }
         </style>
         """
 
@@ -292,7 +227,7 @@ class UniversalEngine:
                     <span style="font-size:12px;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
-                    <span style="font-size:11px; color:blue;">{saju_data[1]['s_s']}</span>
+                    <span style="font-size:11px; color:#1a73e8;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
                     <span style="font-size:12px;">월주</span>
@@ -307,26 +242,21 @@ class UniversalEngine:
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
                 </div>
             </div>
-            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#eee;">🌊 대운 흐름</div>
+            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
             <div class="dw-box">
                 {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
             </div>
             <div class="card" style="border-left: 5px solid #333;">
                 <div style="font-weight:bold; font-size:15px; margin-bottom:5px;">📜 AI 도사의 감명</div>
                 <div style="font-size:14px; line-height:1.6;">
-                    {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
-                    주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
+                    {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.
                 </div>
-                <div style="font-size:12px; color:#666; background:#f9f9f9; padding:8px; border-radius:5px; margin-top:5px;">
-                    <b>📖 십신 용어:</b> {terms_str}
+                <div style="font-size:12px; opacity:0.8; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
+                    <b>📖 십신:</b> {terms_str}
                 </div>
-            </div>
-            <div class="card" style="border-left: 5px solid #009688;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>사주 월간 운세</div>
-                <div style="font-size:14px; margin-top:8px;">{s_m_msg}</div>
             </div>
             <div class="card" style="border-left: 5px solid #ff9800;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>사주 오늘의 운세 ({s_d_score}점)</div>
+                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>운세 ({s_d_score}점)</div>
                 <div style="font-size:14px; margin-top:8px;">{s_d_msg}</div>
             </div>
         </div>
@@ -334,33 +264,19 @@ class UniversalEngine:
 
         zodiac_html = f"""
         <div class="panel">
-            <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
-            <div class="z-title">{z_kor} ({z_eng})</div>
-            <div style="text-align:center; color:#666; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
+            <div class="hd" style="background:#673ab7;">✨ 별자리 (Chart)</div>
+            <div class="z-title">{z_kor}</div>
+            <div style="text-align:center; opacity:0.7; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
             <div class="chart-box">
                 <img src="data:image/png;base64,{chart_img}" class="chart-img">
-                <div style="font-size:12px; color:#888; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
-            </div>
-            <div class="card" style="background:#f4efff; border:none; margin:15px;">
-                <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
-                <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px;">
-                    <li><b>본질:</b> {z_desc}</li>
-                    <li><b>에너지:</b> 창의적이고 독립적인 성향이 강합니다.</li>
-                    <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
-                </ul>
-            </div>
-            <div class="card" style="border-left: 5px solid #9c27b0;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#9c27b0;">Monthly</span>별자리 이달의 운세</div>
-                <div style="font-size:14px; margin-top:8px;">{z_m_msg}</div>
             </div>
             <div class="card" style="border-left: 5px solid #e91e63;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Daily</span>별자리 오늘의 운세 ({z_d_score}점)</div>
+                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Today</span>별자리 운세 ({z_d_score}점)</div>
                 <div style="font-size:14px; margin-top:8px;">{z_d_msg}</div>
             </div>
         </div>
         """
-        final_html = f"{style}<div class='container'>{saju_html}{zodiac_html}</div>"
-        return final_html
+        return f"{style}<div class='container'>{saju_html}{zodiac_html}</div>"
 
 # ==========================================
 # 3. Streamlit 앱 실행부
@@ -368,15 +284,22 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # [강조 CSS] 사이드바 버튼 및 가이드
+    # 1번 수정: 하단 링크 및 깃허브 배지 완전 제거
+    # 2&3번 수정: 전역 텍스트 컬러 대응
     st.markdown("""
         <style>
             #MainMenu { visibility: hidden; }
             footer { visibility: hidden; }
-            header { 
-                background: transparent !important;
-                height: 3rem !important;
+            header { visibility: hidden; }
+            /* 하단 Streamlit 로고 및 링크 제거 */
+            [data-testid="stViewerBadge"] { display: none !important; }
+            .viewerBadge_container__1QSob { display: none !important; }
+            
+            /* 스마트폰 배경색에 따른 글자색 자동 스위칭 */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
             }
+            
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important;
                 color: white !important;
@@ -388,47 +311,26 @@ def main():
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
                 z-index: 999999 !important;
-                animation: pulse 1.5s infinite;
-            }
-            [data-testid="stSidebarCollapsedControl"]::after {
-                content: "👈 여기를 눌러 시작";
-                position: absolute;
-                left: 55px;
-                white-space: nowrap;
-                background: #ff4444;
-                color: white;
-                padding: 5px 12px;
-                border-radius: 20px;
-                font-size: 14px;
-                font-weight: bold;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-            @keyframes pulse {
-                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-                70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
-                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
         </style>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.info("왼쪽 상단의 버튼(👈)을 눌러 사주 정보를 입력해 주세요.")
     
     with st.sidebar:
         st.header("정보 입력")
-        name = st.text_input("이름", value="", placeholder="이름을 입력하세요")
+        name = st.text_input("이름", value="")
         gender = st.radio("성별", ["남자", "여자"])
         cal_type = st.radio("달력", ["양력", "음력"])
-        is_leap = st.checkbox("윤달 (음력)", value=False) if cal_type == "음력" else False
-        birth_txt = st.text_input("생년월일 (8자리)", placeholder="예: 19800101")
+        is_leap = st.checkbox("윤달", value=False) if cal_type == "음력" else False
+        birth_txt = st.text_input("생년월일 (8자리)", placeholder="19900101")
         b_time = st.time_input("태어난 시간", value=datetime.time(12, 0))
         btn_run = st.button("운세 분석 시작", type="primary")
 
     if btn_run:
         if not name or len(birth_txt) != 8:
-            st.error("이름과 생년월일 8자리를 입력해주세요.")
+            st.error("이름과 생년월일 8자리를 정확히 입력해주세요.")
             return
         engine = UniversalEngine()
         y, m, d = int(birth_txt[:4]), int(birth_txt[4:6]), int(birth_txt[6:8])
@@ -438,20 +340,12 @@ def main():
             cal = KoreanLunarCalendar()
             cal.setLunarDate(y, m, d, is_leap)
             y, m, d = cal.solarYear, cal.solarMonth, cal.solarDay
-            solar_str = f"{y}-{m}-{d} (음력변환)"
-        with st.spinner("천기누설 중..."):
+            solar_str = f"{y}-{m}-{d} (음력)"
+        
+        with st.spinner("운세를 분석 중입니다..."):
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
-            st.markdown("---")
-            ad_content = """
-            <div style="background-color: #f1f3f4; border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #bdc1c6;">
-                <p style="color: #70757a; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
-                <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
-                <p style="color: #3c4043; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
-            </div>
-            """
-            components.html(ad_content, height=150)
-            st.caption("본 서비스는 엔터테인먼트용이며 법적 책임을 지지 않습니다.")
+            st.caption("본 결과는 참고용이며 재미로 봐주시기 바랍니다.")
 
 if __name__ == "__main__":
     main()
