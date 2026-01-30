@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from korean_lunar_calendar import KoreanLunarCalendar
 
 # ==========================================
-# 1. 통합 데이터 베이스 (기존과 동일)
+# 1. 통합 데이터 베이스 (기존 동일)
 # ==========================================
 class UniversalDB:
     def __init__(self):
@@ -33,7 +33,7 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (기존과 동일)
+# 2. 통합 엔진 (기존 동일)
 # ==========================================
 class UniversalEngine:
     def __init__(self):
@@ -66,13 +66,6 @@ class UniversalEngine:
         t_stem = (t_start + h_branch) % 10
         return {"year": (y_stem, y_branch), "month": (m_stem, m_branch), "day": (d_stem, d_branch), "time": (t_stem, h_branch)}
 
-    def get_shipsin(self, me, target): 
-        lookup = ["비견", "식상", "재성", "관성", "인성"]
-        me_idx = ["목","화","토","금","수"].index(me)
-        tg_idx = ["목","화","토","금","수"].index(target)
-        diff = (tg_idx - me_idx + 5) % 5
-        return lookup[diff]
-
     def get_daewoon(self, y_s, m_s, m_b, gender):
         is_yang = y_s % 2 == 0
         is_man = (gender == '남자')
@@ -88,30 +81,9 @@ class UniversalEngine:
             })
         return lst
 
-    def get_zodiac_info(self, m, d):
-        dates = self.db.zodiac_dates
-        z_eng, z_kor, z_desc = "Capricorn", "염소자리", "야망가"
-        md = m * 100 + d
-        for cm, cd, eng, kor, desc in dates:
-            start_md = cm * 100 + cd
-            idx = dates.index((cm, cd, eng, kor, desc))
-            next_idx = (idx + 1) % 12
-            nm, nd, _, _, _ = dates[next_idx]
-            if eng == "Capricorn":
-                if md >= 1225 or md <= 119:
-                    z_eng, z_kor, z_desc = eng, kor, desc; break
-            else:
-                end_md = nm * 100 + nd
-                if start_md <= md < end_md:
-                    z_eng, z_kor, z_desc = eng, kor, desc; break
-        return z_eng, z_kor, z_desc
-
     def generate_chart_image(self, target_eng, m, d):
         day_of_year = datetime.date(2000, m, d).timetuple().tm_yday
-        vern_equinox = datetime.date(2000, 3, 21).timetuple().tm_yday
-        diff_days = day_of_year - vern_equinox
-        if diff_days < 0: diff_days += 365
-        sun_lon = diff_days * 0.986 
+        sun_lon = (day_of_year - 80) * 0.986
         fig = plt.figure(figsize=(4, 4))
         ax = fig.add_subplot(111, projection='polar')
         ax.set_theta_direction(-1)
@@ -125,16 +97,37 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            color = '#673ab7' if i == target_idx else '#88888833'
+            color = '#673ab7' if i == target_idx else '#88888822'
             ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.5, edgecolor='gray')
             ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='gray', fontweight='bold')
-        sun_angle = np.deg2rad(sun_lon)
-        ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
+        ax.text(np.deg2rad(sun_lon), 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
         img = io.BytesIO()
         plt.savefig(img, format='png', bbox_inches='tight', transparent=True)
         img.seek(0)
         return base64.b64encode(img.getvalue()).decode()
+
+    def get_shipsin(self, me, target): 
+        lookup = ["비견", "식상", "재성", "관성", "인성"]
+        me_idx = ["목","화","토","금","수"].index(me)
+        tg_idx = ["목","화","토","금","수"].index(target)
+        diff = (tg_idx - me_idx + 5) % 5
+        return lookup[diff]
+
+    def get_zodiac_info(self, m, d):
+        dates = UniversalDB().zodiac_dates
+        z_eng, z_kor, z_desc = "Capricorn", "염소자리", "야망가"
+        md = m * 100 + d
+        for cm, cd, eng, kor, desc in dates:
+            start_md = cm * 100 + cd
+            idx = dates.index((cm, cd, eng, kor, desc))
+            next_idx = (idx + 1) % 12
+            nm, nd, _, _, _ = dates[next_idx]
+            if eng == "Capricorn":
+                if md >= 1225 or md <= 119: z_eng, z_kor, z_desc = eng, kor, desc; break
+            else:
+                if start_md <= md < (nm * 100 + nd): z_eng, z_kor, z_desc = eng, kor, desc; break
+        return z_eng, z_kor, z_desc
 
     def generate_full_report(self, name, gender, y, m, d, h, is_lunar, solar_date_str):
         ganji = self.get_ganji(y, m, d, h)
@@ -144,14 +137,12 @@ class UniversalEngine:
         for p in pillars:
             s_idx, b_idx = ganji[p]
             s_oh, b_oh = self.gan_oh[s_idx], self.ji_oh[b_idx]
-            s_ship = self.get_shipsin(me_oh, s_oh)
-            b_ship = self.get_shipsin(me_oh, b_oh)
-            if p=="day": s_ship="<b>일간</b>"
             saju_data.append({
                 "g_c": self.gan_hanja[s_idx], "j_c": self.ji_hanja[b_idx],
                 "g_bg": self.oh_map[s_oh]['color'], "j_bg": self.oh_map[b_oh]['color'],
                 "g_tc": self.oh_map[s_oh]['text'], "j_tc": self.oh_map[b_oh]['text'],
-                "s_s": s_ship, "b_s": b_ship
+                "s_s": self.get_shipsin(me_oh, s_oh) if p != "day" else "<b>일간</b>",
+                "b_s": self.get_shipsin(me_oh, b_oh)
             })
         daewoon = self.get_daewoon(ganji["year"][0], ganji["month"][0], ganji["month"][1], gender)
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
@@ -159,94 +150,51 @@ class UniversalEngine:
         
         # 랜덤 메시지 생성
         s_d_score = random.randint(75, 99)
-        s_d_msg = random.choice(["귀인의 도움이 있는 날입니다.", "재물운이 상승하는 흐름입니다.", "뜻밖의 기쁜 소식이 옵니다."])
-        s_m_msg = random.choice(["이번 달은 새로운 변화가 길합니다.", "주변 사람과의 협력이 행운을 불러옵니다."])
+        s_d_msg = random.choice(["귀인의 도움이 있는 날입니다.", "재물운이 상승합니다.", "뜻밖의 소식이 옵니다."])
+        s_m_msg = random.choice(["이번 달은 변화가 길합니다.", "안정을 취하는 한 달이 되세요."])
         z_d_score = random.randint(70, 100)
-        z_d_msg = random.choice(["창의적인 아이디어가 샘솟는 하루입니다.", "직관력이 예리해지는 날입니다."])
-        z_m_msg = f"이달의 별들이 당신을 비추고 있습니다."
+        z_d_msg = random.choice(["직관력이 예리해집니다.", "소통에서 행운을 찾으세요."])
+        z_m_msg = f"이달의 별들이 당신을 비춥니다."
 
         seen = set()
         terms = []
         for d_item in saju_data:
-            keys = [d_item['s_s'], d_item['b_s']]
-            for k in keys:
+            for k in [d_item['s_s'], d_item['b_s']]:
                 clean_k = k.replace("<b>","").replace("</b>","")
-                if clean_k in self.db.shipsin_desc and clean_k not in seen:
-                    terms.append(f"{clean_k}")
-                    seen.add(clean_k)
-        terms_str = ", ".join(terms)
-
-        style = """
-        <style>
-            .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
-            .panel { width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; }
-            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
+                if clean_k in UniversalDB().shipsin_desc and clean_k not in seen:
+                    terms.append(clean_k); seen.add(clean_k)
+        
+        style = """<style>
+            .container { display: flex; flex-direction: column; gap: 15px; }
+            .panel { border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; padding-bottom:10px; overflow: hidden; color: inherit; }
+            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; }
             .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
             .s-col { display: flex; flex-direction: column; align-items: center; }
-            .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+            .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; }
             .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
-            .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
-            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; }
-            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
-        </style>
-        """
+            .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; }
+            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); }
+            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; }
+        </style>"""
 
-        saju_html = f"""
-        <div class="panel">
-            <div class="hd" style="background:#333;">🔮 사주 분석 결과 ({solar_date_str})</div>
+        saju_html = f"""<div class="panel">
+            <div class="hd" style="background:#333;">🔮 사주 결과 ({solar_date_str})</div>
             <div class="s-grid">
-                <div class="s-col">
-                    <span style="font-size:11px; opacity:0.7;">시주</span>
-                    <div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div>
-                    <div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div>
-                </div>
-                <div class="s-col">
-                    <span style="font-size:11px; opacity:0.7;">일주</span>
-                    <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
-                    <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
-                </div>
-                <div class="s-col">
-                    <span style="font-size:11px; opacity:0.7;">월주</span>
-                    <div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div>
-                    <div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div>
-                </div>
-                <div class="s-col">
-                    <span style="font-size:11px; opacity:0.7;">년주</span>
-                    <div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div>
-                    <div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div>
-                </div>
+                {''.join([f'<div class="s-col"><span style="font-size:11px; opacity:0.7;">{p}주</span><div class="char" style="background:{d["g_bg"]}; color:{d["g_tc"]}">{d["g_c"]}</div><div class="char" style="background:{d["j_bg"]}; color:{d["j_tc"]}">{d["j_c"]}</div></div>' for p, d in zip(["시","일","월","년"], saju_data)])}
             </div>
             <div style="padding:8px 12px; font-weight:bold; font-size:13px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
-            <div class="dw-box">
-                {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
-            </div>
-            <div class="card" style="border-left: 5px solid #009688;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#009688;">Monthly</span>이달의 사주 운세</div>
-                <div style="font-size:14px; margin-top:8px;">{s_m_msg}</div>
-            </div>
-            <div class="card" style="border-left: 5px solid #ff9800;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#ff9800;">Daily</span>오늘의 사주 점수: {s_d_score}점</div>
-                <div style="font-size:14px; margin-top:8px;">{s_d_msg}</div>
-            </div>
-        </div>
-        """
+            <div class="dw-box">{''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}</div>
+            <div class="card" style="border-left: 5px solid #009688;"><span class="tag" style="background:#009688;">Monthly</span>{s_m_msg}</div>
+            <div class="card" style="border-left: 5px solid #ff9800;"><span class="tag" style="background:#ff9800;">Daily</span>{s_d_msg} ({s_d_score}점)</div>
+        </div>"""
 
-        zodiac_html = f"""
-        <div class="panel">
+        zodiac_html = f"""<div class="panel">
             <div class="hd" style="background:#673ab7;">✨ 별자리 운세 ({z_kor})</div>
-            <div style="text-align:center; margin:15px 0;">
-                <img src="data:image/png;base64,{chart_img}" style="width:260px; max-width:80%;">
-            </div>
-            <div class="card" style="border-left: 5px solid #9c27b0;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#9c27b0;">Monthly</span>이달의 별자리 운세</div>
-                <div style="font-size:14px; margin-top:8px;">{z_m_msg}</div>
-            </div>
-            <div class="card" style="border-left: 5px solid #e91e63;">
-                <div style="font-weight:bold; font-size:15px;"><span class="tag" style="background:#e91e63;">Today</span>오늘의 별자리 점수: {z_d_score}점</div>
-                <div style="font-size:14px; margin-top:8px;">{z_d_msg}</div>
-            </div>
-        </div>
-        """
+            <div style="text-align:center; margin:15px 0;"><img src="data:image/png;base64,{chart_img}" style="width:260px; max-width:80%;"></div>
+            <div class="card" style="border-left: 5px solid #9c27b0;"><span class="tag" style="background:#9c27b0;">Monthly</span>{z_m_msg}</div>
+            <div class="card" style="border-left: 5px solid #e91e63;"><span class="tag" style="background:#e91e63;">Today</span>{z_d_msg} ({z_d_score}점)</div>
+        </div>"""
+        
         return f"{style}<div class='container'>{saju_html}{zodiac_html}</div>"
 
 # ==========================================
@@ -255,69 +203,64 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 강력한 CSS 수정 (하단 링크 완전 박멸 및 버튼 플로팅 최적화)
+    # 🌟 강력한 CSS 수정 (하단 바 및 로고 완전 제거 + 플로팅 버튼 최적화)
     st.markdown("""
         <style>
-            /* 1. 하단 배지 및 모든 메뉴/푸터/깃허브 링크 강제 제거 */
-            #MainMenu, footer, header, .viewerBadge_container__1QSob, [data-testid="stViewerBadge"], [data-testid="stAppDeployButton"] {
+            /* 1. 하단 바, 로고, 푸터, 배지 완전 박멸 */
+            #MainMenu, footer, header, [data-testid="stViewerBadge"], .viewerBadge_container__1QSob, 
+            [data-testid="stAppDeployButton"], [data-testid="stStatusWidget"], .stDeployButton {
                 display: none !important;
                 visibility: hidden !important;
+                height: 0 !important;
             }
             
-            /* 스마트폰 하단 여백 강제 제거 */
-            .main .block-container {
-                padding-bottom: 0px !important;
-            }
+            /* 2. 스마트폰 하단 여백 제거 */
+            .main .block-container { padding-bottom: 0px !important; }
 
-            /* 2. 사이드바 버튼(>>) -> 하단 우측 플로팅 버튼으로 변신 */
+            /* 3. 사이드바 버튼 -> 강력한 플로팅 버튼으로 변신 */
             [data-testid="stSidebarCollapsedControl"] {
                 display: flex !important;
                 visibility: visible !important;
                 position: fixed !important;
-                bottom: 80px !important; /* 하단에서 위로 80px */
-                right: 20px !important;  /* 오른쪽에서 20px */
-                left: auto !important;   /* 기존 왼쪽 설정 무시 */
-                width: 70px !important;  /* 너비 확장 */
-                height: 70px !important; /* 높이 확장 */
+                bottom: 100px !important; /* 조금 더 위로 */
+                right: 20px !important;
+                width: 140px !important;  /* 가로로 더 길게 */
+                height: 60px !important;
                 background-color: #ff4444 !important;
                 color: white !important;
-                border-radius: 35px !important;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
-                z-index: 1000000 !important;
+                border-radius: 30px !important;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+                z-index: 9999999 !important; /* 최상단 */
                 justify-content: center !important;
                 align-items: center !important;
-                animation: pulse 2s infinite; /* 깜빡거리는 효과 */
+                animation: pulse 2s infinite;
             }
             
-            /* 버튼 안내 텍스트 (말풍선 형태) */
+            /* 버튼 텍스트 강제 삽입 */
             [data-testid="stSidebarCollapsedControl"]::after {
-                content: "사주 입력하기";
-                position: absolute;
-                bottom: 80px;
-                right: 0px;
-                background: #ff4444;
-                color: white;
-                padding: 6px 12px;
-                border-radius: 15px;
-                font-size: 13px;
-                font-weight: bold;
-                white-space: nowrap;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                content: "📋 정보입력";
+                font-size: 16px !important;
+                font-weight: bold !important;
+                color: white !important;
+            }
+            
+            /* 원래 있던 작은 화살표 아이콘 숨기기 */
+            [data-testid="stSidebarCollapsedControl"] svg {
+                display: none !important;
             }
             
             @keyframes pulse {
-                0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-                70% { box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
+                70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
 
-            /* 텍스트 컬러 자동 전환 */
             html, body, [data-testid="stAppViewContainer"] { color: inherit; }
         </style>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.info("하단 우측의 빨간 플로팅 버튼을 눌러 정보를 입력하세요.")
+    st.info("우측 하단의 [📋 정보입력] 버튼을 눌러주세요.")
     
     with st.sidebar:
         st.header("정보 입력")
@@ -343,22 +286,16 @@ def main():
             y, m, d = cal.solarYear, cal.solarMonth, cal.solarDay
             solar_str = f"{y}-{m}-{d} (음력)"
         
-        with st.spinner("운명을 분석 중입니다..."):
+        with st.spinner("분석 중..."):
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
-            
             st.markdown("---")
-            
-            # 하단 광고 영역
-            ad_content = """
-            <div style="background-color: rgba(128, 128, 128, 0.08); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.4); color: inherit;">
+            ad_content = """<div style="background-color: rgba(128, 128, 128, 0.08); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.4); color: inherit;">
                 <p style="opacity: 0.6; font-size: 11px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
-                <p style="font-size: 13px; opacity: 0.8;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
-            </div>
-            """
-            components.html(ad_content, height=130)
-            st.caption("본 결과는 엔터테인먼트용입니다.")
+            </div>"""
+            components.html(ad_content, height=110)
+            st.caption("본 서비스는 엔터테인먼트용입니다.")
 
 if __name__ == "__main__":
     main()
