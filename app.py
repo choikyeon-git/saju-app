@@ -274,25 +274,60 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # [수정] 하단 배지 및 깃허브 아이콘 완전 제거용 CSS
+    # 🌟 강력한 CSS 수정 (사이드바 버튼 위치 및 하단 링크 제거)
     st.markdown("""
         <style>
+            /* 1. 기본 메뉴 및 푸터 제거 */
             #MainMenu { visibility: hidden; }
             footer { visibility: hidden; }
             header { visibility: hidden; }
-            [data-testid="stViewerBadge"] { display: none !important; }
-            .viewerBadge_container__1QSob { display: none !important; }
-            html, body, [data-testid="stAppViewContainer"] { color: inherit; }
+            
+            /* 2. 하단 배지 및 깃허브 링크 박멸 (선택자 강화) */
+            [data-testid="stViewerBadge"], 
+            .viewerBadge_container__1QSob,
+            [data-testid="stAppDeployButton"],
+            footer {
+                display: none !important;
+            }
+
+            /* 3. 사이드바 버튼(>>) 모바일 노출 및 위치 조정 */
             [data-testid="stSidebarCollapsedControl"] {
-                background-color: #ff4444 !important; color: white !important;
-                border-radius: 50% !important; width: 45px !important; height: 45px !important;
-                top: 10px !important; left: 10px !important; display: flex !important;
-                align-items: center !important; justify-content: center !important; z-index: 999999 !important;
+                display: flex !important;
+                visibility: visible !important;
+                left: 10px !important;
+                top: 50% !important; /* 화면 중앙 좌측으로 이동 */
+                transform: translateY(-50%) !important;
+                background-color: #ff4444 !important;
+                color: white !important;
+                border-radius: 50% !important;
+                width: 50px !important;
+                height: 50px !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+                z-index: 999999 !important;
+            }
+            
+            /* 4. 버튼 옆에 '입력창 열기' 텍스트 추가 */
+            [data-testid="stSidebarCollapsedControl"]::after {
+                content: "입력창 열기";
+                position: absolute;
+                left: 55px;
+                background: #ff4444;
+                padding: 5px 10px;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            /* 5. 텍스트 컬러 자동 전환 */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
             }
         </style>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
+    st.info("좌측 중앙의 빨간 버튼(●)을 눌러 사주 정보를 입력해 주세요.")
     
     with st.sidebar:
         st.header("정보 입력")
@@ -319,15 +354,14 @@ def main():
             solar_str = f"{y}-{m}-{d} (음력)"
         
         with st.spinner("운명을 분석 중입니다..."):
-            # 1. 리포트 본문 출력
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
             
             st.markdown("---")
             
-            # 2. [추가] 하단 광고 영역 복구
+            # 하단 광고 영역
             ad_content = """
-            <div style="background-color: rgba(128, 128, 128, 0.05); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.3); color: inherit;">
+            <div style="background-color: rgba(128, 128, 128, 0.08); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.4); color: inherit;">
                 <p style="opacity: 0.6; font-size: 11px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
                 <p style="font-size: 13px; opacity: 0.8;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
