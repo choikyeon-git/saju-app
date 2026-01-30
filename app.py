@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from korean_lunar_calendar import KoreanLunarCalendar
 
 # ==========================================
-# 1. 통합 데이터 베이스 (기존 동일)
+# 1. 통합 데이터 베이스
 # ==========================================
 class UniversalDB:
     def __init__(self):
@@ -33,7 +33,7 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (기존 동일)
+# 2. 통합 엔진 (로직 보존)
 # ==========================================
 class UniversalEngine:
     def __init__(self):
@@ -66,6 +66,13 @@ class UniversalEngine:
         t_stem = (t_start + h_branch) % 10
         return {"year": (y_stem, y_branch), "month": (m_stem, m_branch), "day": (d_stem, d_branch), "time": (t_stem, h_branch)}
 
+    def get_shipsin(self, me, target): 
+        lookup = ["비견", "식상", "재성", "관성", "인성"]
+        me_idx = ["목","화","토","금","수"].index(me)
+        tg_idx = ["목","화","토","금","수"].index(target)
+        diff = (tg_idx - me_idx + 5) % 5
+        return lookup[diff]
+
     def get_daewoon(self, y_s, m_s, m_b, gender):
         is_yang = y_s % 2 == 0
         is_man = (gender == '남자')
@@ -81,6 +88,19 @@ class UniversalEngine:
             })
         return lst
 
+    def get_zodiac_info(self, m, d):
+        dates = self.db.zodiac_dates
+        z_eng, z_kor, z_desc = "Capricorn", "염소자리", "야망가"
+        md = m * 100 + d
+        for cm, cd, eng, kor, desc in dates:
+            start_md = cm * 100 + cd
+            nm, nd = dates[(dates.index((cm, cd, eng, kor, desc)) + 1) % 12][:2]
+            if eng == "Capricorn":
+                if md >= 1225 or md <= 119: z_eng, z_kor, z_desc = eng, kor, desc; break
+            elif start_md <= md < (nm * 100 + nd):
+                z_eng, z_kor, z_desc = eng, kor, desc; break
+        return z_eng, z_kor, z_desc
+
     def generate_chart_image(self, target_eng, m, d):
         day_of_year = datetime.date(2000, m, d).timetuple().tm_yday
         sun_lon = (day_of_year - 80) * 0.986
@@ -92,13 +112,12 @@ class UniversalEngine:
         ax.set_yticks([])
         ax.set_xticks(np.deg2rad(np.arange(0, 360, 30)))
         ax.set_xticklabels([])
-        labels = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+        labels = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
             color = '#673ab7' if i == target_idx else '#88888822'
-            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.5, edgecolor='gray')
+            ax.bar(angle, 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.5, edgecolor='gray')
             ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='gray', fontweight='bold')
         ax.text(np.deg2rad(sun_lon), 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
@@ -106,28 +125,6 @@ class UniversalEngine:
         plt.savefig(img, format='png', bbox_inches='tight', transparent=True)
         img.seek(0)
         return base64.b64encode(img.getvalue()).decode()
-
-    def get_shipsin(self, me, target): 
-        lookup = ["비견", "식상", "재성", "관성", "인성"]
-        me_idx = ["목","화","토","금","수"].index(me)
-        tg_idx = ["목","화","토","금","수"].index(target)
-        diff = (tg_idx - me_idx + 5) % 5
-        return lookup[diff]
-
-    def get_zodiac_info(self, m, d):
-        dates = UniversalDB().zodiac_dates
-        z_eng, z_kor, z_desc = "Capricorn", "염소자리", "야망가"
-        md = m * 100 + d
-        for cm, cd, eng, kor, desc in dates:
-            start_md = cm * 100 + cd
-            idx = dates.index((cm, cd, eng, kor, desc))
-            next_idx = (idx + 1) % 12
-            nm, nd, _, _, _ = dates[next_idx]
-            if eng == "Capricorn":
-                if md >= 1225 or md <= 119: z_eng, z_kor, z_desc = eng, kor, desc; break
-            else:
-                if start_md <= md < (nm * 100 + nd): z_eng, z_kor, z_desc = eng, kor, desc; break
-        return z_eng, z_kor, z_desc
 
     def generate_full_report(self, name, gender, y, m, d, h, is_lunar, solar_date_str):
         ganji = self.get_ganji(y, m, d, h)
@@ -148,7 +145,7 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
         
-        # 랜덤 메시지 생성
+        # 운세 메시지
         s_d_score = random.randint(75, 99)
         s_d_msg = random.choice(["귀인의 도움이 있는 날입니다.", "재물운이 상승합니다.", "뜻밖의 소식이 옵니다."])
         s_m_msg = random.choice(["이번 달은 변화가 길합니다.", "안정을 취하는 한 달이 되세요."])
@@ -156,14 +153,6 @@ class UniversalEngine:
         z_d_msg = random.choice(["직관력이 예리해집니다.", "소통에서 행운을 찾으세요."])
         z_m_msg = f"이달의 별들이 당신을 비춥니다."
 
-        seen = set()
-        terms = []
-        for d_item in saju_data:
-            for k in [d_item['s_s'], d_item['b_s']]:
-                clean_k = k.replace("<b>","").replace("</b>","")
-                if clean_k in UniversalDB().shipsin_desc and clean_k not in seen:
-                    terms.append(clean_k); seen.add(clean_k)
-        
         style = """<style>
             .container { display: flex; flex-direction: column; gap: 15px; }
             .panel { border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; padding-bottom:10px; overflow: hidden; color: inherit; }
@@ -198,69 +187,70 @@ class UniversalEngine:
         return f"{style}<div class='container'>{saju_html}{zodiac_html}</div>"
 
 # ==========================================
-# 3. Streamlit 앱 실행부
+# 3. Streamlit 앱 실행부 (플로팅 버튼 및 링크 제거 강화)
 # ==========================================
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 강력한 CSS 수정 (하단 바 및 로고 완전 제거 + 플로팅 버튼 최적화)
+    # JavaScript + CSS 통합 (하단 바 및 로고 완전 제거 로직)
     st.markdown("""
-        <style>
-            /* 1. 하단 바, 로고, 푸터, 배지 완전 박멸 */
-            #MainMenu, footer, header, [data-testid="stViewerBadge"], .viewerBadge_container__1QSob, 
-            [data-testid="stAppDeployButton"], [data-testid="stStatusWidget"], .stDeployButton {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
+        <script>
+            function removeElements() {
+                const selectors = [
+                    'footer', 'header', '[data-testid="stViewerBadge"]', 
+                    '.viewerBadge_container__1QSob', '[data-testid="stAppDeployButton"]',
+                    '[data-testid="stStatusWidget"]', '.stDeployButton', '#MainMenu'
+                ];
+                selectors.forEach(s => {
+                    const el = document.querySelector(s);
+                    if (el) el.style.display = 'none';
+                });
             }
+            setInterval(removeElements, 100);
+        </script>
+        <style>
+            /* 헤더, 푸터 원천 차단 */
+            header, footer, [data-testid="stHeader"] { display: none !important; }
             
-            /* 2. 스마트폰 하단 여백 제거 */
-            .main .block-container { padding-bottom: 0px !important; }
-
-            /* 3. 사이드바 버튼 -> 강력한 플로팅 버튼으로 변신 */
+            /* 사이드바 원본 버튼 숨기기 */
+            [data-testid="stSidebarCollapsedControl"] svg { display: none !important; }
+            
+            /* 플로팅 버튼 (📋 정보입력) 최적화 */
             [data-testid="stSidebarCollapsedControl"] {
                 display: flex !important;
                 visibility: visible !important;
                 position: fixed !important;
-                bottom: 100px !important; /* 조금 더 위로 */
-                right: 20px !important;
-                width: 140px !important;  /* 가로로 더 길게 */
-                height: 60px !important;
+                bottom: 110px !important;
+                right: 30px !important;
+                width: 140px !important;
+                height: 65px !important;
                 background-color: #ff4444 !important;
-                color: white !important;
-                border-radius: 30px !important;
+                border-radius: 35px !important;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-                z-index: 9999999 !important; /* 최상단 */
+                z-index: 9999999 !important;
+                border: 2px solid white !important;
                 justify-content: center !important;
                 align-items: center !important;
                 animation: pulse 2s infinite;
             }
-            
-            /* 버튼 텍스트 강제 삽입 */
             [data-testid="stSidebarCollapsedControl"]::after {
                 content: "📋 정보입력";
+                color: white !important;
                 font-size: 16px !important;
                 font-weight: bold !important;
-                color: white !important;
             }
-            
-            /* 원래 있던 작은 화살표 아이콘 숨기기 */
-            [data-testid="stSidebarCollapsedControl"] svg {
-                display: none !important;
-            }
-            
             @keyframes pulse {
-                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-                70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
-                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
             }
-
+            /* 텍스트 컬러 스위칭 대응 */
             html, body, [data-testid="stAppViewContainer"] { color: inherit; }
         </style>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.info("우측 하단의 [📋 정보입력] 버튼을 눌러주세요.")
+    st.info("우측 하단의 빨간색 [📋 정보입력] 버튼을 누르세요.")
     
     with st.sidebar:
         st.header("정보 입력")
@@ -278,7 +268,6 @@ def main():
             return
         engine = UniversalEngine()
         y, m, d = int(birth_txt[:4]), int(birth_txt[4:6]), int(birth_txt[6:8])
-        h = b_time.hour
         solar_str = f"{y}-{m}-{d}"
         if cal_type == "음력":
             cal = KoreanLunarCalendar()
@@ -286,16 +275,18 @@ def main():
             y, m, d = cal.solarYear, cal.solarMonth, cal.solarDay
             solar_str = f"{y}-{m}-{d} (음력)"
         
-        with st.spinner("분석 중..."):
-            html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
+        with st.spinner("운명을 분석 중..."):
+            html_report = engine.generate_full_report(name, gender, y, m, d, b_time.hour, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
+            
+            # 하단 광고 영역 보존
             st.markdown("---")
             ad_content = """<div style="background-color: rgba(128, 128, 128, 0.08); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.4); color: inherit;">
                 <p style="opacity: 0.6; font-size: 11px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
             </div>"""
-            components.html(ad_content, height=110)
-            st.caption("본 서비스는 엔터테인먼트용입니다.")
+            components.html(ad_content, height=120)
+            st.caption("본 결과는 엔터테인먼트용입니다.")
 
 if __name__ == "__main__":
     main()
