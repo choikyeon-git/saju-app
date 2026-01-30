@@ -125,9 +125,10 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            color = '#d1c4e9' if i == target_idx else '#f5f5f5'
-            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.8, edgecolor='white')
-            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#333', fontweight='bold')
+            color = '#d1c4e9' if i == target_idx else '#808080'
+            alpha = 0.9 if i == target_idx else 0.15
+            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=alpha, edgecolor='none')
+            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#888', fontweight='bold')
         sun_angle = np.deg2rad(sun_lon)
         ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
@@ -156,12 +157,14 @@ class UniversalEngine:
         daewoon = self.get_daewoon(ganji["year"][0], ganji["month"][0], ganji["month"][1], gender)
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
+        
+        # 메시지 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
         s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
         z_d_score = random.randint(60, 100)
-        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다. 메모하세요.", "잠시 휴식을 취하며 내면을 돌아보세요."])
+        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다.", "잠시 휴식을 취하며 내면을 돌아보세요."])
         z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
         z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
         seen = set()
@@ -181,54 +184,32 @@ class UniversalEngine:
                 display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; 
             }
             .panel { 
-                width: 100%; 
-                border: 1px solid rgba(128, 128, 128, 0.3); 
-                border-radius: 12px; 
-                background: transparent; 
-                padding-bottom:10px; 
-                overflow: hidden; 
-                color: inherit; 
+                width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; 
             }
             .hd { 
-                padding: 12px; 
-                color: white; 
-                font-weight: bold; 
-                text-align: center; 
-                font-size: 16px; 
+                padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; 
             }
             .s-grid { 
-                display: flex; justify-content: space-around; padding: 15px 5px; 
-                border-bottom:1px dashed rgba(128, 128, 128, 0.3); 
+                display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); 
             }
             .s-col { display: flex; flex-direction: column; align-items: center; }
             .char { 
-                width: 50px; height: 50px; font-size: 26px; line-height: 50px; 
-                font-weight: bold; border-radius: 8px; margin: 2px; 
-                text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
+                width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
             }
             .dw-box { 
-                display: flex; overflow-x: auto; padding: 10px; gap: 8px; 
-                background: rgba(128, 128, 128, 0.05); 
+                display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); 
             }
             .dw-cd { 
-                min-width: 50px; height: 65px; border-radius: 6px; 
-                display: flex; flex-direction: column; align-items: center; 
-                justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
+                min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
             }
             .card { 
-                margin: 10px; padding: 15px; 
-                border: 1px solid rgba(128, 128, 128, 0.2); 
-                border-radius: 10px; 
-                background: rgba(128, 128, 128, 0.03); 
-                color: inherit; 
+                margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; 
             }
             .tag { 
-                font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; 
-                margin-right: 5px; vertical-align: middle; 
+                font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; 
             }
             .z-title { 
-                font-size: 24px; font-weight: bold; color: #673ab7; 
-                text-align: center; margin-top:10px; 
+                font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; 
             }
             .chart-box { text-align: center; margin: 15px 0; }
             .chart-img { width: 280px; max-width: 80%; }
@@ -274,7 +255,7 @@ class UniversalEngine:
                     {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
                     주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
                 </div>
-                <div style="font-size:12px; opacity:0.8; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
+                <div style="font-size:12px; opacity:0.7; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
                     <b>📖 십신 용어:</b> {terms_str}
                 </div>
             </div>
@@ -298,7 +279,7 @@ class UniversalEngine:
                 <img src="data:image/png;base64,{chart_img}" class="chart-img">
                 <div style="font-size:12px; opacity:0.6; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
             </div>
-            <div class="card" style="background:rgba(128,128,128,0.03); border:none; margin:15px;">
+            <div class="card" style="background:rgba(103, 58, 183, 0.05); border:none; margin:15px;">
                 <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
                 <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px; opacity:0.8;">
                     <li><b>본질:</b> {z_desc}</li>
@@ -325,28 +306,34 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [개선] 1. 하단 링크 제거 / 2. 다크모드 대응 / 3. 투명 방패(Click Shield) + 안전 여백
+    # 🌟 [핵심] 하단 메뉴 "고스트 모드" & 물리적 터치 차단
     st.markdown("""
         <style>
-            /* UI 숨김 처리 */
-            #MainMenu { visibility: hidden; }
-            footer { visibility: hidden; }
-            header { background: transparent !important; height: 3rem !important; }
+            /* 1. 하단 배지 및 메뉴 시각적 제거 */
+            #MainMenu, header { visibility: hidden !important; }
+            footer { display: none !important; }
             [data-testid="stViewerBadge"] { display: none !important; }
-            .viewerBadge_container__1QSob { display: none !important; }
-            [data-testid="stAppDeployButton"] { display: none !important; }
             
-            /* 다크모드 글자색 자동 상속 */
+            /* 2. [강력 차단] 하단 링크 요소들의 터치 기능 마비 (Ghosting) */
+            footer, [data-testid="stAppDeployButton"], .viewerBadge_container__1QSob, [data-testid="stStatusWidget"] {
+                pointer-events: none !important; /* 터치를 아예 인식하지 못하게 함 */
+                opacity: 0 !important; /* 투명하게 */
+                width: 0 !important;
+                height: 0 !important;
+                display: none !important;
+            }
+
+            /* 3. 스마트폰 다크/라이트 모드 글자색 자동 대응 */
             html, body, [data-testid="stAppViewContainer"] {
                 color: inherit;
             }
 
-            /* 하단 안전 여백 확보 (내용이 방패에 가려지지 않도록) */
+            /* 4. 안전 여백 확보: 내용이 방패 아래에 깔리지 않도록 */
             .main .block-container {
-                padding-bottom: 80px !important; /* 방패 높이(60px) + 여유(20px) */
+                padding-bottom: 120px !important; /* 여유 있게 공간 확보 */
             }
 
-            /* 사이드바 버튼 스타일 */
+            /* 5. 사이드바 버튼 스타일 */
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important;
                 color: white !important;
@@ -381,20 +368,32 @@ def main():
                 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
 
-            /* 🌟 [핵심] 투명 방패: 하단 클릭 물리적 차단 */
+            /* 6. [최후의 수단] 하단 전체 클릭 차단 방패 (높이 100px) */
             .click-shield {
                 position: fixed;
                 bottom: 0px;
                 left: 0px;
-                width: 100vw;
-                height: 60px; /* 링크가 있는 하단 영역 높이 */
+                width: 100%;
+                height: 100px; /* 차단 높이 100px로 확장 */
                 background: transparent; /* 투명 */
                 z-index: 2147483647; /* 최상위 레이어 */
-                pointer-events: auto; /* 터치 이벤트 가로채기 */
+                pointer-events: auto; /* 모든 터치를 이 레이어가 흡수 */
+            }
+            /* 우측 하단 (배지 위치) 집중 방어 */
+            .corner-shield {
+                position: fixed;
+                bottom: 0px;
+                right: 0px;
+                width: 150px;
+                height: 80px;
+                background: transparent;
+                z-index: 2147483647;
+                pointer-events: auto;
             }
         </style>
         
         <div class="click-shield"></div>
+        <div class="corner-shield"></div>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
