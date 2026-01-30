@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 from korean_lunar_calendar import KoreanLunarCalendar
 
 # ==========================================
-# 1. 통합 데이터 베이스 (초기 안정 버전)
+# 1. 통합 데이터 베이스
 # ==========================================
 class UniversalDB:
     def __init__(self):
@@ -33,13 +33,14 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (초기 안정 버전)
+# 2. 통합 엔진 (로직)
 # ==========================================
 class UniversalEngine:
     def __init__(self):
         self.db = UniversalDB()
         self.gan_hanja = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
         self.ji_hanja = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+        # 오행 색상 맵 (글자색은 흰색/검은색 고정이 아닌 상속 유도)
         self.oh_map = {
             "목": {"color": "#00C73C", "text": "white"}, "화": {"color": "#FF4444", "text": "white"},
             "토": {"color": "#E6B800", "text": "black"}, "금": {"color": "#DDDDDD", "text": "black"},
@@ -125,9 +126,12 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            color = '#d1c4e9' if i == target_idx else '#f5f5f5'
-            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=0.8, edgecolor='white')
-            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#333', fontweight='bold')
+            # 차트 색상도 다크/라이트 모두 잘 보이도록 조정
+            color = '#9c27b0' if i == target_idx else '#808080'
+            alpha = 0.9 if i == target_idx else 0.15
+            ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=alpha, edgecolor='none')
+            # 텍스트 색상을 회색조로 변경하여 배경에 무관하게 보이도록 함
+            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#888', fontweight='bold')
         sun_angle = np.deg2rad(sun_lon)
         ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
@@ -156,12 +160,14 @@ class UniversalEngine:
         daewoon = self.get_daewoon(ganji["year"][0], ganji["month"][0], ganji["month"][1], gender)
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
+        
+        # 메시지 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
         s_m_msg = random.choice(["이동수가 있는 달입니다.", "안정을 취하면 길합니다.", "새로운 인연이 찾아옵니다."])
         z_d_score = random.randint(60, 100)
-        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다. 메모하세요.", "잠시 휴식을 취하며 내면을 돌아보세요."])
+        z_d_msg = random.choice(["직관력이 높아지는 날입니다. 느낌을 믿으세요.", "주변 사람과의 대화에서 행운을 찾을 수 있어요.", "창의적인 아이디어가 떠오릅니다.", "잠시 휴식을 취하며 내면을 돌아보세요."])
         z_m_keyword = random.choice(["사랑", "변화", "성공", "치유", "열정"])
         z_m_msg = f"이번 달의 키워드는 '{z_m_keyword}'입니다. 별들이 당신을 비추고 있습니다."
         seen = set()
@@ -175,24 +181,21 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
-        # CSS 스타일 분리
+        # 🌟 [수정 포인트] 다크/화이트 모드 자동 대응 CSS
+        # background: transparent 및 color: inherit 사용이 핵심입니다.
         style = """
         <style>
             .container { 
-                display: flex; 
-                flex-direction: column; 
-                width: 100%; 
-                gap: 15px; 
-                font-family: sans-serif; 
+                display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; 
             }
             .panel { 
                 width: 100%; 
-                border: 1px solid #ddd; 
+                border: 1px solid rgba(128, 128, 128, 0.3); 
                 border-radius: 12px; 
-                background: white; 
+                background: transparent; /* 배경 투명으로 설정하여 시스템 테마 따름 */
                 padding-bottom:10px; 
                 overflow: hidden; 
-                box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+                color: inherit; /* 글자색 상속 */
             }
             .hd { 
                 padding: 12px; 
@@ -202,79 +205,41 @@ class UniversalEngine:
                 font-size: 16px; 
             }
             .s-grid { 
-                display: flex; 
-                justify-content: space-around; 
-                padding: 15px 5px; 
-                border-bottom:1px dashed #ccc; 
+                display: flex; justify-content: space-around; padding: 15px 5px; 
+                border-bottom:1px dashed rgba(128, 128, 128, 0.3); 
             }
-            .s-col { 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-            }
+            .s-col { display: flex; flex-direction: column; align-items: center; }
             .char { 
-                width: 50px; 
-                height: 50px; 
-                font-size: 26px; 
-                line-height: 50px; 
-                font-weight: bold; 
-                border-radius: 8px; 
-                margin: 2px; 
-                text-align: center; 
-                box-shadow: 1px 1px 3px #ccc; 
+                width: 50px; height: 50px; font-size: 26px; line-height: 50px; 
+                font-weight: bold; border-radius: 8px; margin: 2px; 
+                text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
             }
             .dw-box { 
-                display: flex; 
-                overflow-x: auto; 
-                padding: 10px; 
-                gap: 8px; 
-                background:#fafafa; 
-                -webkit-overflow-scrolling: touch; 
+                display: flex; overflow-x: auto; padding: 10px; gap: 8px; 
+                background: rgba(128, 128, 128, 0.05); /* 아주 옅은 회색 */
             }
             .dw-cd { 
-                min-width: 50px; 
-                height: 65px; 
-                border-radius: 6px; 
-                display: flex; 
-                flex-direction: column; 
-                align-items: center; 
-                justify-content: center; 
-                color:white; 
-                font-size:12px; 
-                font-weight:bold; 
-                flex-shrink: 0; 
+                min-width: 50px; height: 65px; border-radius: 6px; 
+                display: flex; flex-direction: column; align-items: center; 
+                justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
             }
             .card { 
-                margin: 10px; 
-                padding: 15px; 
-                border: 1px solid #eee; 
+                margin: 10px; padding: 15px; 
+                border: 1px solid rgba(128, 128, 128, 0.2); 
                 border-radius: 10px; 
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-                background: #fff; 
+                background: rgba(128, 128, 128, 0.03); /* 다크/화이트 모두 어울리는 반투명 */
+                color: inherit; 
             }
             .tag { 
-                font-size: 11px; 
-                color: white; 
-                padding: 3px 8px; 
-                border-radius: 12px; 
-                margin-right: 5px; 
-                vertical-align: middle; 
+                font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; 
+                margin-right: 5px; vertical-align: middle; 
             }
             .z-title { 
-                font-size: 24px; 
-                font-weight: bold; 
-                color: #673ab7; 
-                text-align: center; 
-                margin-top:10px; 
+                font-size: 24px; font-weight: bold; color: #673ab7; 
+                text-align: center; margin-top:10px; 
             }
-            .chart-box { 
-                text-align: center; 
-                margin: 15px 0; 
-            }
-            .chart-img { 
-                width: 280px; 
-                max-width: 80%; 
-            }
+            .chart-box { text-align: center; margin: 15px 0; }
+            .chart-img { width: 280px; max-width: 80%; }
         </style>
         """
 
@@ -283,31 +248,31 @@ class UniversalEngine:
             <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
             <div class="s-grid">
                 <div class="s-col">
-                    <span style="font-size:12px;">시주</span>
+                    <span style="font-size:12px; opacity:0.8;">시주</span>
                     <div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div>
                     <div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[0]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">일주</span>
+                    <span style="font-size:12px; opacity:0.8;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
-                    <span style="font-size:11px; color:blue;">{saju_data[1]['s_s']}</span>
+                    <span style="font-size:11px; color:#2196f3;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">월주</span>
+                    <span style="font-size:12px; opacity:0.8;">월주</span>
                     <div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div>
                     <div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[2]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">년주</span>
+                    <span style="font-size:12px; opacity:0.8;">년주</span>
                     <div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div>
                     <div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
                 </div>
             </div>
-            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#eee;">🌊 대운 흐름</div>
+            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
             <div class="dw-box">
                 {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
             </div>
@@ -317,7 +282,7 @@ class UniversalEngine:
                     {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
                     주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
                 </div>
-                <div style="font-size:12px; color:#666; background:#f9f9f9; padding:8px; border-radius:5px; margin-top:5px;">
+                <div style="font-size:12px; opacity:0.7; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
                     <b>📖 십신 용어:</b> {terms_str}
                 </div>
             </div>
@@ -336,14 +301,14 @@ class UniversalEngine:
         <div class="panel">
             <div class="hd" style="background:#673ab7;">✨ 천문 별자리 (Chart)</div>
             <div class="z-title">{z_kor} ({z_eng})</div>
-            <div style="text-align:center; color:#666; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
+            <div style="text-align:center; opacity:0.7; font-size:14px; margin-bottom:10px;">"{z_desc}"</div>
             <div class="chart-box">
                 <img src="data:image/png;base64,{chart_img}" class="chart-img">
-                <div style="font-size:12px; color:#888; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
+                <div style="font-size:12px; opacity:0.6; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
             </div>
-            <div class="card" style="background:#f4efff; border:none; margin:15px;">
+            <div class="card" style="background:rgba(103, 58, 183, 0.05); border:none; margin:15px;">
                 <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
-                <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px;">
+                <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px; opacity:0.8;">
                     <li><b>본질:</b> {z_desc}</li>
                     <li><b>에너지:</b> 창의적이고 독립적인 성향이 강합니다.</li>
                     <li><b>조언:</b> 직관을 믿고 새로운 것에 도전하세요.</li>
@@ -368,15 +333,22 @@ class UniversalEngine:
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # [강조 CSS] 사이드바 버튼, 가이드, 투명 방패(Click Shield)
+    # 🌟 [수정 포인트] 투명 방패(Click Shield) 강화 및 다크모드 대응
     st.markdown("""
         <style>
             #MainMenu { visibility: hidden; }
             footer { visibility: hidden; }
-            header { 
-                background: transparent !important;
-                height: 3rem !important;
+            header { background: transparent !important; height: 3rem !important; }
+            [data-testid="stViewerBadge"] { display: none !important; }
+            .viewerBadge_container__1QSob { display: none !important; }
+            [data-testid="stAppDeployButton"] { display: none !important; }
+            
+            /* 글자색 상속 (다크/라이트 모드 자동 전환) */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
             }
+
+            /* 사이드바 버튼 스타일 */
             [data-testid="stSidebarCollapsedControl"] {
                 background-color: #ff4444 !important;
                 color: white !important;
@@ -410,16 +382,16 @@ def main():
                 70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
                 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
-            
-            /* [NEW] 하단 투명 방패 (클릭 차단) */
+
+            /* 🌟 [NEW] 투명 방패: 하단 클릭 완벽 차단 */
             .click-shield {
                 position: fixed;
                 bottom: 0px;
                 left: 0px;
                 width: 100vw;
-                height: 50px;  /* 하단 링크 영역 높이 */
-                background-color: transparent; /* 투명 */
-                z-index: 99999999; /* 최상위 레이어 */
+                height: 60px; /* 차단 높이 60px로 증가 */
+                background: transparent; /* 투명 */
+                z-index: 999999999; /* 최상위 레이어 */
                 pointer-events: auto; /* 터치 이벤트 가로채기 */
             }
         </style>
@@ -458,10 +430,10 @@ def main():
             st.markdown(html_report, unsafe_allow_html=True)
             st.markdown("---")
             ad_content = """
-            <div style="background-color: #f1f3f4; border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #bdc1c6;">
-                <p style="color: #70757a; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
+            <div style="background-color: rgba(128, 128, 128, 0.1); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.3); color: inherit;">
+                <p style="opacity: 0.7; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
-                <p style="color: #3c4043; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
+                <p style="opacity: 0.8; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
             </div>
             """
             components.html(ad_content, height=150)
