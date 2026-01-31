@@ -125,11 +125,9 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            # 차트 색상도 다크/라이트 모두 잘 보이도록 조정
             color = '#9c27b0' if i == target_idx else '#808080'
             alpha = 0.9 if i == target_idx else 0.15
             ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=alpha, edgecolor='none')
-            # 텍스트 색상을 회색조로 변경하여 배경에 무관하게 보이도록 함
             ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#888', fontweight='bold')
         sun_angle = np.deg2rad(sun_lon)
         ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
@@ -179,7 +177,6 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
-        # 다크/화이트 모드 자동 대응 CSS
         style = """
         <style>
             .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
@@ -203,25 +200,25 @@ class UniversalEngine:
             <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
             <div class="s-grid">
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">시주</span>
+                    <span style="font-size:12px;">시주</span>
                     <div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div>
                     <div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[0]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">일주</span>
+                    <span style="font-size:12px;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
                     <span style="font-size:11px; color:#2196f3;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">월주</span>
+                    <span style="font-size:12px;">월주</span>
                     <div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div>
                     <div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[2]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">년주</span>
+                    <span style="font-size:12px;">년주</span>
                     <div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div>
                     <div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
@@ -283,29 +280,53 @@ class UniversalEngine:
         return final_html
 
 # ==========================================
-# 3. Streamlit 앱 실행부 (버튼 구출 & 방패 강화)
+# 3. Streamlit 앱 실행부
 # ==========================================
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [해결] 1. 버튼 최상단 노출 / 2. 헤더 투명화 / 3. 하단 방패 60px / 4. 다크모드 대응
+    # 🌟 [초강력 수정] Javascript DOM 강제 삭제 + 우측 하단 코너 집중 방어
     st.markdown("""
-        <style>
-            /* 1. 하단 배지 및 메뉴 숨김 (시각적) */
-            #MainMenu { visibility: hidden; }
-            footer { visibility: hidden; }
-            
-            /* 2. 헤더 투명화 (버튼 살리기 위해 display:none 대신 visibility 사용) */
-            header { 
-                visibility: hidden !important; 
-                background: transparent !important;
-                height: 0 !important; /* 공간 차지 방지 */
+        <script>
+            // 끈질긴 하단 메뉴(뱃지, 배포 버튼)를 감지 즉시 삭제하는 함수
+            function removeStickyBits() {
+                const targets = [
+                    '[data-testid="stViewerBadge"]', 
+                    '[data-testid="stAppDeployButton"]', 
+                    '.viewerBadge_container__1QSob', 
+                    'footer', 
+                    '[data-testid="stToolbar"]'
+                ];
+                targets.forEach(selector => {
+                    const elements = document.querySelectorAll(selector);
+                    elements.forEach(el => el.remove()); // DOM에서 아예 제거 (Hidden 아님)
+                });
             }
-            [data-testid="stViewerBadge"] { display: none !important; }
-            .viewerBadge_container__1QSob { display: none !important; }
-            [data-testid="stAppDeployButton"] { display: none !important; }
+            // 0.5초마다 실행하여 부활하는 요소 즉시 제거
+            setInterval(removeStickyBits, 500);
+        </script>
+        
+        <style>
+            /* 1. 하단 배지 및 메뉴 시각적 제거 (CSS Backup) */
+            #MainMenu, footer, header, [data-testid="stViewerBadge"], .viewerBadge_container__1QSob, [data-testid="stAppDeployButton"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
             
-            /* 3. 사이드바 열기 버튼 강제 노출 및 최상위 배치 */
+            /* 2. 다크모드 대응 */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
+            }
+
+            /* 3. 하단 안전 여백 (내용 잘림 방지) */
+            .main .block-container {
+                padding-bottom: 100px !important;
+            }
+
+            /* 4. 사이드바 버튼 (좌측 상단 고정) */
             [data-testid="stSidebarCollapsedControl"] {
                 visibility: visible !important;
                 display: flex !important;
@@ -318,7 +339,7 @@ def main():
                 color: white !important;
                 border-radius: 50% !important;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                z-index: 2147483647 !important; /* 투명 방패보다 위 */
+                z-index: 2147483647 !important;
                 align-items: center !important;
                 justify-content: center !important;
                 animation: pulse 1.5s infinite;
@@ -336,45 +357,44 @@ def main():
                 font-weight: bold;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
-            
-            /* 4. 애니메이션 */
             @keyframes pulse {
-                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-                70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
-                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
             }
 
-            /* 5. 투명 방패 (Click Shield) - 하단 60px만 차단 */
+            /* 5. [중요] 투명 방패 - 전체 하단바 클릭 차단 */
             .click-shield {
                 position: fixed;
                 bottom: 0px;
                 left: 0px;
                 width: 100%;
-                height: 60px; /* 높이 60px로 제한 */
+                height: 60px;
+                background: transparent;
+                z-index: 2147483646; /* 버튼보다 1 낮게 */
+                pointer-events: auto;
+            }
+
+            /* 6. [NEW] 코너 집중 방어 - 우측 하단 아이콘 위치 절대 사수 */
+            .corner-shield {
+                position: fixed;
+                bottom: 0px;
+                right: 0px;
+                width: 100px;  /* 아이콘 영역만큼 */
+                height: 60px;
                 background: transparent; /* 투명 */
-                z-index: 999999; /* 버튼보다는 낮지만 메뉴보다는 높게 */
-                pointer-events: auto; /* 터치 차단 */
-            }
-            
-            /* 6. 다크모드 대응 */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: inherit;
-            }
-            
-            /* 7. 하단 여백 (내용 잘림 방지) */
-            .main .block-container {
-                padding-bottom: 80px !important;
+                z-index: 2147483647 !important; /* 최상위 */
+                pointer-events: auto !important; /* 클릭 강제 흡수 */
             }
         </style>
         
         <div class="click-shield"></div>
+        <div class="corner-shield"></div>
     """, unsafe_allow_html=True)
     
-    # 타이틀
     st.title("📱 AI 운세 마스터")
-    st.info("왼쪽 상단의 붉은 버튼(👈)을 눌러 사주를 입력하세요.")
+    st.info("왼쪽 상단의 버튼(👈)을 눌러 사주 정보를 입력해 주세요.")
     
-    # 사이드바 입력창
     with st.sidebar:
         st.header("정보 입력")
         name = st.text_input("이름", value="", placeholder="이름을 입력하세요")
