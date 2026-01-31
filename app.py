@@ -125,10 +125,10 @@ class UniversalEngine:
         target_idx = labels.index(target_eng)
         for i, label in enumerate(labels):
             angle = np.deg2rad(i * 30 + 15)
-            color = '#9c27b0' if i == target_idx else '#808080'
-            alpha = 0.9 if i == target_idx else 0.15
+            color = '#9c27b0' if i == target_idx else '#eeeeee' # 흰 배경에 맞는 회색
+            alpha = 0.9 if i == target_idx else 0.5
             ax.bar(np.deg2rad(i*30 + 15), 10, width=np.deg2rad(30), bottom=0, color=color, alpha=alpha, edgecolor='none')
-            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#888', fontweight='bold')
+            ax.text(angle, 8.5, label[:3], ha='center', va='center', fontsize=9, color='#555', fontweight='bold')
         sun_angle = np.deg2rad(sun_lon)
         ax.text(sun_angle, 6, "☉", color='orange', fontsize=20, ha='center', va='center', fontweight='bold')
         plt.axis('off')
@@ -158,6 +158,7 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
         
+        # 메시지 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
@@ -180,14 +181,14 @@ class UniversalEngine:
         style = """
         <style>
             .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
-            .panel { width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; }
+            .panel { width: 100%; border: 1px solid #e0e0e0; border-radius: 12px; background: #ffffff; padding-bottom:10px; overflow: hidden; color: #333333; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
             .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
-            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
+            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed #e0e0e0; }
             .s-col { display: flex; flex-direction: column; align-items: center; }
             .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
-            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
+            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: #f9f9f9; }
             .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
-            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; }
+            .card { margin: 10px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 10px; background: #fcfcfc; color: #333333; }
             .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
             .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
             .chart-box { text-align: center; margin: 15px 0; }
@@ -200,31 +201,31 @@ class UniversalEngine:
             <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
             <div class="s-grid">
                 <div class="s-col">
-                    <span style="font-size:12px;">시주</span>
+                    <span style="font-size:12px; opacity:0.8;">시주</span>
                     <div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div>
                     <div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[0]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">일주</span>
+                    <span style="font-size:12px; opacity:0.8;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
                     <span style="font-size:11px; color:#2196f3;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">월주</span>
+                    <span style="font-size:12px; opacity:0.8;">월주</span>
                     <div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div>
                     <div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[2]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px;">년주</span>
+                    <span style="font-size:12px; opacity:0.8;">년주</span>
                     <div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div>
                     <div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
                 </div>
             </div>
-            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:rgba(128,128,128,0.1);">🌊 대운 흐름</div>
+            <div style="padding:8px 12px; font-weight:bold; font-size:14px; background:#f0f0f0;">🌊 대운 흐름</div>
             <div class="dw-box">
                 {''.join([f"<div class='dw-cd' style='background:{d['bg']}; color:{d['tc']}'><span>{d['age']}</span><span>{d['gan']}{d['ji']}</span></div>" for d in daewoon])}
             </div>
@@ -234,7 +235,7 @@ class UniversalEngine:
                     {name}님은 <b>{me_oh}</b> 일간의 기질을 타고났습니다.<br>
                     주어진 오행의 조화를 이루며 나아가면 큰 성취가 있을 것입니다.
                 </div>
-                <div style="font-size:12px; opacity:0.7; background:rgba(128,128,128,0.05); padding:8px; border-radius:5px; margin-top:5px;">
+                <div style="font-size:12px; opacity:0.7; background:#f5f5f5; padding:8px; border-radius:5px; margin-top:5px;">
                     <b>📖 십신 용어:</b> {terms_str}
                 </div>
             </div>
@@ -258,7 +259,7 @@ class UniversalEngine:
                 <img src="data:image/png;base64,{chart_img}" class="chart-img">
                 <div style="font-size:12px; opacity:0.6; margin-top:5px;">* 태양(☉)이 {z_kor} 구간을 운행 중입니다.</div>
             </div>
-            <div class="card" style="background:rgba(103, 58, 183, 0.05); border:none; margin:15px;">
+            <div class="card" style="background:#f3e5f5; border:none; margin:15px;">
                 <div style="font-weight:bold; color:#5a3d99; font-size:15px;">📌 별자리 심층 분석</div>
                 <ul style="font-size:14px; text-align:left; padding-left:20px; line-height:1.7; margin-top:5px; opacity:0.8;">
                     <li><b>본질:</b> {z_desc}</li>
@@ -283,121 +284,92 @@ class UniversalEngine:
 # 3. Streamlit 앱 실행부
 # ==========================================
 def main():
+    # 🌟 페이지 설정: 강제 라이트 모드 느낌을 주기 위해 레이아웃 설정
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [초강력 수정] Javascript DOM 강제 삭제 + 우측 하단 코너 집중 방어
+    # 🌟 [최종 해결책] CSS & JS 주입
+    # 1. :root 변수 재정의 -> 다크모드 무시하고 강제 흰색 배경/검은 글씨 적용
+    # 2. 하단 툴바(Deploy button, Status widget) -> pointer-events: none으로 클릭 원천 봉쇄
+    # 3. 사이드바 버튼 -> 모바일에서 잘 보이게 위치 및 스타일 조정
     st.markdown("""
-        <script>
-            // 끈질긴 하단 메뉴(뱃지, 배포 버튼)를 감지 즉시 삭제하는 함수
-            function removeStickyBits() {
-                const targets = [
-                    '[data-testid="stViewerBadge"]', 
-                    '[data-testid="stAppDeployButton"]', 
-                    '.viewerBadge_container__1QSob', 
-                    'footer', 
-                    '[data-testid="stToolbar"]'
-                ];
-                targets.forEach(selector => {
-                    const elements = document.querySelectorAll(selector);
-                    elements.forEach(el => el.remove()); // DOM에서 아예 제거 (Hidden 아님)
-                });
-            }
-            // 0.5초마다 실행하여 부활하는 요소 즉시 제거
-            setInterval(removeStickyBits, 500);
-        </script>
-        
         <style>
-            /* 1. 하단 배지 및 메뉴 시각적 제거 (CSS Backup) */
-            #MainMenu, footer, header, [data-testid="stViewerBadge"], .viewerBadge_container__1QSob, [data-testid="stAppDeployButton"] {
-                display: none !important;
+            /* [강제 라이트 모드] 시스템 설정 무시하고 흰색 테마 강제 적용 */
+            :root {
+                --primary-color: #ff4444;
+                --background-color: #ffffff;
+                --secondary-background-color: #f0f2f6;
+                --text-color: #31333F;
+                --font: sans-serif;
+            }
+            
+            /* Streamlit 기본 영역 강제 흰색 */
+            .stApp {
+                background-color: #ffffff !important;
+                color: #31333F !important;
+            }
+            
+            /* 사이드바도 밝은색으로 */
+            [data-testid="stSidebar"] {
+                background-color: #f8f9fa !important;
+            }
+            [data-testid="stSidebar"] * {
+                color: #31333F !important;
+            }
+
+            /* [하단 툴바 무력화] */
+            /* 시각적으로 숨김 */
+            header, footer, [data-testid="stHeader"], .stAppDeployButton, [data-testid="stStatusWidget"] {
                 visibility: hidden !important;
                 height: 0 !important;
                 opacity: 0 !important;
+            }
+            /* 기능적으로 클릭 차단 (중요!) */
+            [data-testid="stToolbar"], [data-testid="stAppDeployButton"], [data-testid="stStatusWidget"], .viewerBadge_container__1QSob {
                 pointer-events: none !important;
-            }
-            
-            /* 2. 다크모드 대응 */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: inherit;
+                display: none !important;
             }
 
-            /* 3. 하단 안전 여백 (내용 잘림 방지) */
-            .main .block-container {
-                padding-bottom: 100px !important;
-            }
-
-            /* 4. 사이드바 버튼 (좌측 상단 고정) */
+            /* [사이드바 열기 버튼 커스텀] */
             [data-testid="stSidebarCollapsedControl"] {
                 visibility: visible !important;
-                display: flex !important;
-                position: fixed !important;
-                top: 15px !important;
-                left: 15px !important;
-                width: 50px !important;
-                height: 50px !important;
+                display: block !important;
                 background-color: #ff4444 !important;
                 color: white !important;
                 border-radius: 50% !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
-                z-index: 2147483647 !important;
-                align-items: center !important;
-                justify-content: center !important;
-                animation: pulse 1.5s infinite;
+                width: 50px !important;
+                height: 50px !important;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+                /* 위치 고정 */
+                position: fixed !important;
+                top: 15px !important;
+                left: 15px !important;
+                z-index: 1000001 !important;
             }
-            [data-testid="stSidebarCollapsedControl"]::after {
-                content: "👈 MENU";
-                position: absolute;
-                left: 55px;
-                white-space: nowrap;
-                background: #ff4444;
-                color: white;
-                padding: 5px 10px;
-                border-radius: 15px;
-                font-size: 12px;
-                font-weight: bold;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            }
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); }
+            
+            /* 버튼 내부 아이콘 색상 */
+            [data-testid="stSidebarCollapsedControl"] svg {
+                fill: white !important;
+                stroke: white !important;
             }
 
-            /* 5. [중요] 투명 방패 - 전체 하단바 클릭 차단 */
-            .click-shield {
-                position: fixed;
-                bottom: 0px;
-                left: 0px;
-                width: 100%;
-                height: 60px;
-                background: transparent;
-                z-index: 2147483646; /* 버튼보다 1 낮게 */
-                pointer-events: auto;
+            /* 입력창, 버튼 등 위젯 스타일 강제 (다크모드에서도 밝게) */
+            .stTextInput input, .stSelectbox, .stNumberInput input {
+                background-color: #ffffff !important;
+                color: #333333 !important;
+                border-color: #cccccc !important;
             }
-
-            /* 6. [NEW] 코너 집중 방어 - 우측 하단 아이콘 위치 절대 사수 */
-            .corner-shield {
-                position: fixed;
-                bottom: 0px;
-                right: 0px;
-                width: 100px;  /* 아이콘 영역만큼 */
-                height: 60px;
-                background: transparent; /* 투명 */
-                z-index: 2147483647 !important; /* 최상위 */
-                pointer-events: auto !important; /* 클릭 강제 흡수 */
+            .stMarkdown {
+                color: #333333 !important;
             }
         </style>
-        
-        <div class="click-shield"></div>
-        <div class="corner-shield"></div>
     """, unsafe_allow_html=True)
     
     st.title("📱 AI 운세 마스터")
-    st.info("왼쪽 상단의 버튼(👈)을 눌러 사주 정보를 입력해 주세요.")
+    st.info("왼쪽 상단의 빨간 버튼( > )을 눌러 사주 정보를 입력해 주세요.")
     
     with st.sidebar:
         st.header("정보 입력")
-        name = st.text_input("이름", value="", placeholder="이름을 입력하세요")
+        name = st.text_input("이름", value="")
         gender = st.radio("성별", ["남자", "여자"])
         cal_type = st.radio("달력", ["양력", "음력"])
         is_leap = st.checkbox("윤달 (음력)", value=False) if cal_type == "음력" else False
@@ -407,7 +379,7 @@ def main():
 
     if btn_run:
         if not name or len(birth_txt) != 8:
-            st.error("이름과 생년월일 8자리를 입력해주세요.")
+            st.error("이름과 생년월일 8자리를 정확히 입력해주세요.")
             return
         engine = UniversalEngine()
         y, m, d = int(birth_txt[:4]), int(birth_txt[4:6]), int(birth_txt[6:8])
@@ -418,13 +390,13 @@ def main():
             cal.setLunarDate(y, m, d, is_leap)
             y, m, d = cal.solarYear, cal.solarMonth, cal.solarDay
             solar_str = f"{y}-{m}-{d} (음력변환)"
-        with st.spinner("천기누설 중..."):
+        with st.spinner("운명을 분석 중입니다..."):
             html_report = engine.generate_full_report(name, gender, y, m, d, h, (cal_type=="음력"), solar_str)
             st.markdown(html_report, unsafe_allow_html=True)
             st.markdown("---")
             ad_content = """
-            <div style="background-color: rgba(128, 128, 128, 0.1); border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed rgba(128, 128, 128, 0.3); color: inherit;">
-                <p style="opacity: 0.7; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
+            <div style="background-color: #f8f9fa; border-radius: 10px; padding: 20px; text-align: center; border: 1px dashed #cccccc; color: #333333;">
+                <p style="opacity: 0.6; font-size: 12px; margin: 0;">ADVERTISEMENT</p>
                 <div style="margin: 10px 0; font-weight: bold; color: #1a73e8;">성공적인 미래를 위한 오늘의 한걸음 🍀</div>
                 <p style="opacity: 0.8; font-size: 14px;">실제 광고 승인 후 이 영역에 광고가 표시됩니다.</p>
             </div>
