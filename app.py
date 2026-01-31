@@ -33,14 +33,13 @@ class UniversalDB:
         ]
 
 # ==========================================
-# 2. 통합 엔진 (로직)
+# 2. 통합 엔진
 # ==========================================
 class UniversalEngine:
     def __init__(self):
         self.db = UniversalDB()
         self.gan_hanja = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
         self.ji_hanja = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
-        # 오행 색상 맵 (글자색은 흰색/검은색 고정이 아닌 상속 유도)
         self.oh_map = {
             "목": {"color": "#00C73C", "text": "white"}, "화": {"color": "#FF4444", "text": "white"},
             "토": {"color": "#E6B800", "text": "black"}, "금": {"color": "#DDDDDD", "text": "black"},
@@ -161,7 +160,6 @@ class UniversalEngine:
         z_eng, z_kor, z_desc = self.get_zodiac_info(m, d)
         chart_img = self.generate_chart_image(z_eng, m, d)
         
-        # 메시지 생성
         random.seed(int(f"{y}{m}{d}") + datetime.datetime.now().day)
         s_d_score = random.randint(70, 99)
         s_d_msg = random.choice(["귀인의 도움이 있습니다.", "재물운이 상승합니다.", "건강을 챙기세요.", "뜻밖의 행운이 옵니다."])
@@ -181,63 +179,20 @@ class UniversalEngine:
                     seen.add(clean_k)
         terms_str = ", ".join(terms)
 
-        # 🌟 [수정 포인트] 다크/화이트 모드 자동 대응 CSS
-        # background: transparent 및 color: inherit 사용이 핵심입니다.
+        # 다크/화이트 모드 자동 대응 CSS
         style = """
         <style>
-            .container { 
-                display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; 
-            }
-            .panel { 
-                width: 100%; 
-                border: 1px solid rgba(128, 128, 128, 0.3); 
-                border-radius: 12px; 
-                background: transparent; /* 배경 투명으로 설정하여 시스템 테마 따름 */
-                padding-bottom:10px; 
-                overflow: hidden; 
-                color: inherit; /* 글자색 상속 */
-            }
-            .hd { 
-                padding: 12px; 
-                color: white; 
-                font-weight: bold; 
-                text-align: center; 
-                font-size: 16px; 
-            }
-            .s-grid { 
-                display: flex; justify-content: space-around; padding: 15px 5px; 
-                border-bottom:1px dashed rgba(128, 128, 128, 0.3); 
-            }
+            .container { display: flex; flex-direction: column; width: 100%; gap: 15px; font-family: sans-serif; }
+            .panel { width: 100%; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; background: transparent; padding-bottom:10px; overflow: hidden; color: inherit; }
+            .hd { padding: 12px; color: white; font-weight: bold; text-align: center; font-size: 16px; }
+            .s-grid { display: flex; justify-content: space-around; padding: 15px 5px; border-bottom:1px dashed rgba(128, 128, 128, 0.3); }
             .s-col { display: flex; flex-direction: column; align-items: center; }
-            .char { 
-                width: 50px; height: 50px; font-size: 26px; line-height: 50px; 
-                font-weight: bold; border-radius: 8px; margin: 2px; 
-                text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); 
-            }
-            .dw-box { 
-                display: flex; overflow-x: auto; padding: 10px; gap: 8px; 
-                background: rgba(128, 128, 128, 0.05); /* 아주 옅은 회색 */
-            }
-            .dw-cd { 
-                min-width: 50px; height: 65px; border-radius: 6px; 
-                display: flex; flex-direction: column; align-items: center; 
-                justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; 
-            }
-            .card { 
-                margin: 10px; padding: 15px; 
-                border: 1px solid rgba(128, 128, 128, 0.2); 
-                border-radius: 10px; 
-                background: rgba(128, 128, 128, 0.03); /* 다크/화이트 모두 어울리는 반투명 */
-                color: inherit; 
-            }
-            .tag { 
-                font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; 
-                margin-right: 5px; vertical-align: middle; 
-            }
-            .z-title { 
-                font-size: 24px; font-weight: bold; color: #673ab7; 
-                text-align: center; margin-top:10px; 
-            }
+            .char { width: 50px; height: 50px; font-size: 26px; line-height: 50px; font-weight: bold; border-radius: 8px; margin: 2px; text-align: center; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+            .dw-box { display: flex; overflow-x: auto; padding: 10px; gap: 8px; background: rgba(128, 128, 128, 0.05); }
+            .dw-cd { min-width: 50px; height: 65px; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color:white; font-size:12px; font-weight:bold; flex-shrink: 0; }
+            .card { margin: 10px; padding: 15px; border: 1px solid rgba(128, 128, 128, 0.2); border-radius: 10px; background: rgba(128, 128, 128, 0.03); color: inherit; }
+            .tag { font-size: 11px; color: white; padding: 3px 8px; border-radius: 12px; margin-right: 5px; vertical-align: middle; }
+            .z-title { font-size: 24px; font-weight: bold; color: #673ab7; text-align: center; margin-top:10px; }
             .chart-box { text-align: center; margin: 15px 0; }
             .chart-img { width: 280px; max-width: 80%; }
         </style>
@@ -328,80 +283,98 @@ class UniversalEngine:
         return final_html
 
 # ==========================================
-# 3. Streamlit 앱 실행부
+# 3. Streamlit 앱 실행부 (버튼 구출 & 방패 강화)
 # ==========================================
 def main():
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
-    # 🌟 [수정 포인트] 투명 방패(Click Shield) 강화 및 다크모드 대응
+    # 🌟 [해결] 1. 버튼 최상단 노출 / 2. 헤더 투명화 / 3. 하단 방패 60px / 4. 다크모드 대응
     st.markdown("""
         <style>
+            /* 1. 하단 배지 및 메뉴 숨김 (시각적) */
             #MainMenu { visibility: hidden; }
             footer { visibility: hidden; }
-            header { background: transparent !important; height: 3rem !important; }
+            
+            /* 2. 헤더 투명화 (버튼 살리기 위해 display:none 대신 visibility 사용) */
+            header { 
+                visibility: hidden !important; 
+                background: transparent !important;
+                height: 0 !important; /* 공간 차지 방지 */
+            }
             [data-testid="stViewerBadge"] { display: none !important; }
             .viewerBadge_container__1QSob { display: none !important; }
             [data-testid="stAppDeployButton"] { display: none !important; }
             
-            /* 글자색 상속 (다크/라이트 모드 자동 전환) */
-            html, body, [data-testid="stAppViewContainer"] {
-                color: inherit;
-            }
-
-            /* 사이드바 버튼 스타일 */
+            /* 3. 사이드바 열기 버튼 강제 노출 및 최상위 배치 */
             [data-testid="stSidebarCollapsedControl"] {
+                visibility: visible !important;
+                display: flex !important;
+                position: fixed !important;
+                top: 15px !important;
+                left: 15px !important;
+                width: 50px !important;
+                height: 50px !important;
                 background-color: #ff4444 !important;
                 color: white !important;
                 border-radius: 50% !important;
-                width: 45px !important;
-                height: 45px !important;
-                top: 10px !important;
-                left: 10px !important;
-                display: flex !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                z-index: 2147483647 !important; /* 투명 방패보다 위 */
                 align-items: center !important;
                 justify-content: center !important;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-                z-index: 999999 !important;
                 animation: pulse 1.5s infinite;
             }
             [data-testid="stSidebarCollapsedControl"]::after {
-                content: "👈 여기를 눌러 시작";
+                content: "👈 MENU";
                 position: absolute;
                 left: 55px;
                 white-space: nowrap;
                 background: #ff4444;
                 color: white;
-                padding: 5px 12px;
-                border-radius: 20px;
-                font-size: 14px;
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-size: 12px;
                 font-weight: bold;
                 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
+            
+            /* 4. 애니메이션 */
             @keyframes pulse {
                 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-                70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); }
+                70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
                 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
             }
 
-            /* 🌟 [NEW] 투명 방패: 하단 클릭 완벽 차단 */
+            /* 5. 투명 방패 (Click Shield) - 하단 60px만 차단 */
             .click-shield {
                 position: fixed;
                 bottom: 0px;
                 left: 0px;
-                width: 100vw;
-                height: 60px; /* 차단 높이 60px로 증가 */
+                width: 100%;
+                height: 60px; /* 높이 60px로 제한 */
                 background: transparent; /* 투명 */
-                z-index: 999999999; /* 최상위 레이어 */
-                pointer-events: auto; /* 터치 이벤트 가로채기 */
+                z-index: 999999; /* 버튼보다는 낮지만 메뉴보다는 높게 */
+                pointer-events: auto; /* 터치 차단 */
+            }
+            
+            /* 6. 다크모드 대응 */
+            html, body, [data-testid="stAppViewContainer"] {
+                color: inherit;
+            }
+            
+            /* 7. 하단 여백 (내용 잘림 방지) */
+            .main .block-container {
+                padding-bottom: 80px !important;
             }
         </style>
         
         <div class="click-shield"></div>
     """, unsafe_allow_html=True)
     
+    # 타이틀
     st.title("📱 AI 운세 마스터")
-    st.info("왼쪽 상단의 버튼(👈)을 눌러 사주 정보를 입력해 주세요.")
+    st.info("왼쪽 상단의 붉은 버튼(👈)을 눌러 사주를 입력하세요.")
     
+    # 사이드바 입력창
     with st.sidebar:
         st.header("정보 입력")
         name = st.text_input("이름", value="", placeholder="이름을 입력하세요")
