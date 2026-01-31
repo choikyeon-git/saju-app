@@ -201,25 +201,25 @@ class UniversalEngine:
             <div class="hd" style="background:#333;">🔮 사주 명식 ({solar_date_str})</div>
             <div class="s-grid">
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">시주</span>
+                    <span style="font-size:12px;">시주</span>
                     <div class="char" style="background:{saju_data[0]['g_bg']}; color:{saju_data[0]['g_tc']}">{saju_data[0]['g_c']}</div>
                     <div class="char" style="background:{saju_data[0]['j_bg']}; color:{saju_data[0]['j_tc']}">{saju_data[0]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[0]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">일주</span>
+                    <span style="font-size:12px;">일주</span>
                     <div class="char" style="background:{saju_data[1]['g_bg']}; color:{saju_data[1]['g_tc']}">{saju_data[1]['g_c']}</div>
                     <div class="char" style="background:{saju_data[1]['j_bg']}; color:{saju_data[1]['j_tc']}">{saju_data[1]['j_c']}</div>
                     <span style="font-size:11px; color:#2196f3;">{saju_data[1]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">월주</span>
+                    <span style="font-size:12px;">월주</span>
                     <div class="char" style="background:{saju_data[2]['g_bg']}; color:{saju_data[2]['g_tc']}">{saju_data[2]['g_c']}</div>
                     <div class="char" style="background:{saju_data[2]['j_bg']}; color:{saju_data[2]['j_tc']}">{saju_data[2]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[2]['s_s']}</span>
                 </div>
                 <div class="s-col">
-                    <span style="font-size:12px; opacity:0.8;">년주</span>
+                    <span style="font-size:12px;">년주</span>
                     <div class="char" style="background:{saju_data[3]['g_bg']}; color:{saju_data[3]['g_tc']}">{saju_data[3]['g_c']}</div>
                     <div class="char" style="background:{saju_data[3]['j_bg']}; color:{saju_data[3]['j_tc']}">{saju_data[3]['j_c']}</div>
                     <span style="font-size:11px;">{saju_data[3]['s_s']}</span>
@@ -284,16 +284,13 @@ class UniversalEngine:
 # 3. Streamlit 앱 실행부
 # ==========================================
 def main():
-    # 🌟 페이지 설정: 강제 라이트 모드 느낌을 주기 위해 레이아웃 설정
+    # 🌟 페이지 설정
     st.set_page_config(page_title="AI 운세 마스터", page_icon="🔮", layout="centered", initial_sidebar_state="collapsed")
     
     # 🌟 [최종 해결책] CSS & JS 주입
-    # 1. :root 변수 재정의 -> 다크모드 무시하고 강제 흰색 배경/검은 글씨 적용
-    # 2. 하단 툴바(Deploy button, Status widget) -> pointer-events: none으로 클릭 원천 봉쇄
-    # 3. 사이드바 버튼 -> 모바일에서 잘 보이게 위치 및 스타일 조정
     st.markdown("""
         <style>
-            /* [강제 라이트 모드] 시스템 설정 무시하고 흰색 테마 강제 적용 */
+            /* 1. [강제 라이트 모드] 시스템 설정 무시하고 흰색 테마 적용 */
             :root {
                 --primary-color: #ff4444;
                 --background-color: #ffffff;
@@ -301,14 +298,10 @@ def main():
                 --text-color: #31333F;
                 --font: sans-serif;
             }
-            
-            /* Streamlit 기본 영역 강제 흰색 */
             .stApp {
                 background-color: #ffffff !important;
                 color: #31333F !important;
             }
-            
-            /* 사이드바도 밝은색으로 */
             [data-testid="stSidebar"] {
                 background-color: #f8f9fa !important;
             }
@@ -316,20 +309,12 @@ def main():
                 color: #31333F !important;
             }
 
-            /* [하단 툴바 무력화] */
-            /* 시각적으로 숨김 */
-            header, footer, [data-testid="stHeader"], .stAppDeployButton, [data-testid="stStatusWidget"] {
+            /* 2. [상단 헤더 투명화 & 버튼 구출] */
+            header, [data-testid="stHeader"] {
+                background: transparent !important;
                 visibility: hidden !important;
-                height: 0 !important;
-                opacity: 0 !important;
             }
-            /* 기능적으로 클릭 차단 (중요!) */
-            [data-testid="stToolbar"], [data-testid="stAppDeployButton"], [data-testid="stStatusWidget"], .viewerBadge_container__1QSob {
-                pointer-events: none !important;
-                display: none !important;
-            }
-
-            /* [사이드바 열기 버튼 커스텀] */
+            /* 사이드바 열기 버튼은 보이게 설정 */
             [data-testid="stSidebarCollapsedControl"] {
                 visibility: visible !important;
                 display: block !important;
@@ -339,20 +324,29 @@ def main():
                 width: 50px !important;
                 height: 50px !important;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
-                /* 위치 고정 */
                 position: fixed !important;
                 top: 15px !important;
                 left: 15px !important;
                 z-index: 1000001 !important;
             }
-            
-            /* 버튼 내부 아이콘 색상 */
             [data-testid="stSidebarCollapsedControl"] svg {
                 fill: white !important;
                 stroke: white !important;
             }
 
-            /* 입력창, 버튼 등 위젯 스타일 강제 (다크모드에서도 밝게) */
+            /* 3. [하단 툴바 완벽 제거] display: none으로 아예 삭제 */
+            footer, [data-testid="stStatusWidget"], .stAppDeployButton, 
+            [data-testid="stToolbar"], .viewerBadge_container__1QSob, 
+            [data-testid="stAppDeployButton"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                width: 0 !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            /* 4. [입력창 스타일 강제] 다크모드 무시 */
             .stTextInput input, .stSelectbox, .stNumberInput input {
                 background-color: #ffffff !important;
                 color: #333333 !important;
